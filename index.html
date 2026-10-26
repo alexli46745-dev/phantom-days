@@ -97,7 +97,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .clocks { display: flex; gap: 12px; flex-wrap: wrap; }
 .clock { background: var(--ink); color: var(--white); padding: 8px 18px 9px 14px; clip-path: polygon(4% 0, 100% 0, 95% 100%, 0 100%); display: grid; grid-template-columns: auto auto; column-gap: 10px; align-items: baseline; min-width: 0; }
 .clock:nth-child(2) { transform: rotate(2deg); background: var(--white); color: var(--ink); }
-.clk-zone { font-family: var(--f-display); font-size: 15px; background: var(--red); color: var(--white); padding: 0 6px; letter-spacing: .06em; align-self: center; }
+.clk-zone { font-family: var(--f-display); font-size: 15px; background: var(--red); color: var(--white); padding: 0 6px; letter-spacing: .06em; align-self: center; justify-self: start; }
 .clk-time { font-family: var(--f-display); font-size: clamp(28px, 5.4vw, 40px); line-height: 1; font-variant-numeric: tabular-nums; }
 .clk-time small { font-size: .45em; margin-left: 3px; }
 .clk-sub { grid-column: 1 / -1; font-family: var(--f-display); font-size: 14px; text-transform: uppercase; letter-spacing: .08em; }
@@ -286,6 +286,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .tarot-inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .8s cubic-bezier(.3, 1.35, .5, 1); transform: rotate(-4deg); }
 .tarot:hover .tarot-inner { transform: rotate(-6deg) translateY(-4px); }
 .tarot.flipped .tarot-inner { transform: rotateY(180deg) rotate(4deg); }
+/* iPhone browsers don't always honour backface-visibility, so also hide the face that's turned away,
+   switching faces at the moment the card is edge-on */
+.tarot-inner { -webkit-transform-style: preserve-3d; }
+.tarot:not(.flipped) .tfront { visibility: hidden; }
+.tarot.flipped .tfront { transition: visibility 0s .22s; }
+.tarot.flipped .tback { visibility: hidden; transition: visibility 0s .22s; }
 .tface { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border: 5px solid var(--ink); box-shadow: 8px 8px 0 var(--red); display: grid; place-items: center; overflow: hidden; }
 .tback { background: var(--ink); background-image: repeating-linear-gradient(45deg, var(--red) 0 10px, var(--ink) 10px 20px); }
 .tback::after { content: ""; position: absolute; inset: 12px; border: 3px solid var(--white); }
@@ -522,8 +528,11 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   .db-dow { font-size: 16px; }
   .db-phase { font-size: 14px; }
   .clocks { width: 100%; gap: 8px; flex-wrap: nowrap; }
-  .clock { flex: 1 1 0; min-width: 0; padding: 6px 12px 7px 10px; column-gap: 6px; }
+  .clock { flex: 1 1 0; min-width: 0; padding: 6px 12px 7px 10px; column-gap: 6px; grid-template-columns: auto 1fr; }
   .clk-zone { font-size: 12px; padding: 0 4px; }
+  /* phones: skip the big masked speed lines and the spinning bursts, which cost a lot of graphics memory on iPhone */
+  .d-rays { display: none; }
+  .d-burst, .d-burst2 { animation: none; }
   .clk-time { font-size: 20px; }
   .clk-sub { font-size: 10px; letter-spacing: .04em; }
   .hmeter { gap: 3px; flex-wrap: nowrap; }
