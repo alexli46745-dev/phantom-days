@@ -56,6 +56,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 18px 90px;
   display: flex; flex-direction: column; gap: 22px;
+  overflow-x: clip;   /* tilted shapes and offset backdrops may reach the gutter, never widen the page */
 }
 
 /* ---------- ransom letters (headings only; every letter sits on a solid tile) ---------- */
@@ -80,6 +81,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   text-shadow: .03em .03em 0 var(--ink), .06em .06em 0 var(--ink), .09em .09em 0 var(--ink), .12em .12em 0 var(--ink), .15em .15em 0 var(--ink), .2em .2em 0 rgba(0,0,0,.45);
   transition: color .12s ease, transform .12s ease;
 }
+/* on black cards a black extrusion disappears into a smudge, so step it in red instead */
+.panel:not(.light) .pop:not(.hlabel) .pl {
+  text-shadow: .03em .03em 0 var(--red), .06em .06em 0 var(--red), .09em .09em 0 var(--red-deep), .12em .12em 0 var(--red-deep);
+}
 
 /* ---------- header ---------- */
 .topbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 14px; }
@@ -100,7 +105,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 /* ---------- menu ---------- */
 .shell { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 30px; align-items: start; }
 .main { display: grid; gap: 22px; min-width: 0; }
-.menu { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 14px 0 40px; }
+.menu { position: sticky; z-index: 4; top: calc(16px + env(safe-area-inset-top, 0px)); display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 14px 0 40px; }
 .menu button {
   all: unset; box-sizing: border-box; cursor: pointer; position: relative; isolation: isolate;
   font-size: 44px; padding: 6px 14px 10px 10px;
@@ -113,7 +118,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .menu button:nth-child(6) { margin-left: 44px; }
 .menu button:hover { transform: rotate(-10deg) translateX(8px); }
 .menu button:hover .pl { color: #ff4245; }
-.menu button[aria-current="page"] { transform: rotate(-11deg) scale(1.2); z-index: 2; margin-block: 12px; }
+.menu button[aria-current="page"] { transform: rotate(-7deg) scale(1.06); z-index: 2; margin-block: 14px 22px; }
 .menu button[aria-current="page"]::before { content: ""; position: absolute; inset: -4px -14px -6px -10px; background: var(--white); clip-path: polygon(3% 10%, 100% 0, 95% 100%, 0 86%); z-index: -1; }
 .menu button[aria-current="page"]::after { content: ""; position: absolute; inset: -14px -30px 2px -2px; background: linear-gradient(100deg, #24e1ff 0 28%, #ff2bd6 28% 60%, #ffe600 60%); clip-path: polygon(0 24%, 100% 0, 90% 78%, 10% 100%); z-index: -2; }
 .menu button[aria-current="page"] .pl { color: var(--ink); -webkit-text-stroke: 0; text-shadow: .04em .04em 0 rgba(0,0,0,.18); }
@@ -167,7 +172,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .eyebrow { margin: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .1em; font-size: 18px; display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .eyebrow b { background: var(--ink); padding: 2px 10px; transform: skew(-10deg); font-weight: 400; }
 .names { font-size: clamp(38px, 8vw, 84px); }
-.bigcount { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.bigcount { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; padding-left: 12px; }
 .bc-label { font-family: var(--f-display); font-size: clamp(28px, 5vw, 44px); background: var(--ink); padding: 2px 14px; transform: rotate(-8deg) translateY(-30%); text-transform: uppercase; }
 .bc-num { font-family: var(--f-display); font-size: clamp(110px, 24vw, 230px); line-height: .82; transform: skew(-9deg); color: var(--white); text-shadow: 7px 7px 0 var(--ink), -3px -3px 0 var(--red-deep); font-variant-numeric: tabular-nums; }
 .bc-side { font-family: var(--f-display); font-size: clamp(18px, 3vw, 26px); text-transform: uppercase; line-height: 1.1; padding-bottom: 10px; }
@@ -253,7 +258,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .wk.now .wn { color: var(--red); }
 
 .hub-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px 24px; align-items: stretch; }
-.panel.hcard { position: relative; display: grid; gap: 12px; align-content: start; padding: 80px 22px 70px; }
+.panel.hcard { position: relative; display: grid; gap: 12px; align-content: start; padding: 94px 22px 70px; }
 .panel.hc-fortune { padding-bottom: 28px; }
 .hc-song .song-k { display: none; }
 @media (max-width: 1120px) { .hub-grid { grid-template-columns: minmax(0, 1fr); } }
@@ -320,7 +325,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .wsum-want svg { width: 18px; height: 18px; fill: var(--magenta); vertical-align: -2px; margin-right: 4px; }
 
 .slam { animation: slam .55s cubic-bezier(.2, 1.5, .4, 1) both; animation-delay: var(--d, 0s); }
-@keyframes slam { from { translate: -40px 0; scale: 1.1; } }
+/* pop in place (no sideways move), so a paused animation never leaves content off-screen */
+@keyframes slam { from { scale: 1.05; } 60% { scale: .985; } }
 
 /* ---------- panels ---------- */
 .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
@@ -339,7 +345,9 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .deadline { position: relative; margin: 6px 0 4px; display: grid; }
 .dl-until { justify-self: start; margin-left: 18%; margin-bottom: 4px; font-family: var(--f-tarot); font-size: 22px; letter-spacing: .06em; background: var(--yellow); color: var(--ink); padding: 0 12px; transform: rotate(-5deg) skew(-8deg); position: relative; z-index: 2; box-shadow: 3px 3px 0 var(--ink); }
 .dl-row { display: flex; align-items: center; gap: 10px; transform: rotate(-3deg); flex-wrap: wrap; }
-.dl-what { font-size: clamp(36px, 5vw, 52px); }
+.dl-what { font-size: clamp(36px, 5vw, 52px); max-width: 100%; min-width: 0; }
+.hlabel { max-width: calc(100% - 28px); }
+.names { min-width: 0; }
 .dl-what .pl { color: var(--white); }
 .dl-what .word:first-child .pl { color: var(--yellow); }
 .dl-num { font-family: var(--f-display); font-size: clamp(34px, 6vw, 54px); background: var(--white); color: var(--ink); padding: 0 14px; transform: skew(-12deg) rotate(4deg); line-height: 1.1; border: 4px solid var(--ink); outline: 3px solid var(--white); }
@@ -491,11 +499,35 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   .song-card { grid-template-columns: minmax(0, 1fr); }
   .disc { width: 110px; }
   .ev { grid-template-columns: 62px minmax(0, 1fr) auto; gap: 8px; }
+  .ev-date { font-size: 16px; }
+  .ev-date small { font-size: 11px; }
+  .ev-in { font-size: 16px; }
   .cal-day { min-height: 52px; padding: 4px; }
+  .cal-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; min-width: 0; }
+  .cal-dow { font-size: 12px; letter-spacing: .02em; }
+  .panel { padding: 18px 14px 20px; }
+  .panel.hcard { padding: 90px 16px 70px; }
+  .panel.hc-fortune { padding-bottom: 24px; }
+  .panel::after { inset: 10px -10px -10px 10px; }
   .cal-day .n { font-size: 18px; }
-  .prompt { justify-content: center; font-size: 13px; }
+  .prompt { display: none; }
+  .wrap { padding-block-end: 40px; }
   .shards::before { width: 70vw; }
-  .menu button, .menu button:nth-child(n) { font-size: 23px; padding: 4px 8px 8px 6px; }
+  .menu { gap: 4px 12px; }
+  .menu button, .menu button:nth-child(n) { font-size: 20px; padding: 4px 6px 7px 4px; }
+  /* compact header so content starts higher on a phone: small date, clocks side by side */
+  .topbar { gap: 10px; }
+  .datebug { padding: 6px 18px 9px 12px; }
+  .db-md { font-size: 36px; }
+  .db-dow { font-size: 16px; }
+  .db-phase { font-size: 14px; }
+  .clocks { width: 100%; gap: 8px; flex-wrap: nowrap; }
+  .clock { flex: 1 1 0; min-width: 0; padding: 6px 12px 7px 10px; column-gap: 6px; }
+  .clk-zone { font-size: 12px; padding: 0 4px; }
+  .clk-time { font-size: 20px; }
+  .clk-sub { font-size: 10px; letter-spacing: .04em; }
+  .hmeter { gap: 3px; flex-wrap: nowrap; }
+  .hmeter svg { width: 24px; height: 24px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .disc, .d-burst, .d-burst2, .d-star, .d-heart, .d-mini, .d-rays, .slam { animation: none; }
@@ -549,7 +581,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   <main class="main">
 
   <div class="note" id="syncBar" hidden>
-    <span>Sign in with Google to sync with your partner. Until then, changes stay on this device.</span>
+    <span id="syncText">Sign in with Google to sync with your partner. Until then, changes stay on this device.</span>
     <button type="button" class="p5btn red" id="signInBtn">Sign in with Google</button>
   </div>
   <div class="note" id="exampleNote" hidden>
@@ -1326,7 +1358,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       }
     }
     if (v.tracks.length > 1) {
-      const sh = el("button", "p5btn small" + (mini ? " light" : ""), "Shuffle"); sh.type = "button"; sh.disabled = !canWrite;
+      const sh = el("button", "p5btn small light", "Shuffle"); sh.type = "button"; sh.disabled = !canWrite;
       sh.title = "Draw a different song for today. You'll both see the new pick.";
       sh.addEventListener("click", () => shuffleToday(card));
       acts.appendChild(sh);
@@ -1422,7 +1454,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     }
     renderHubWish(v);
   }
-  function actBtn(text, fn) { const b = el("button", "p5btn small" + (text === "Remove" ? " light" : ""), text); b.type = "button"; b.disabled = !canWrite; b.addEventListener("click", fn); return b; }
+  function actBtn(text, fn) { const b = el("button", "p5btn small" + (text === "Remove" ? " red" : ""), text); b.type = "button"; b.disabled = !canWrite; b.addEventListener("click", fn); return b; }
   function persistLocalWishes() { try { localStorage.setItem(LS_WISH, JSON.stringify(wishes)); } catch (_) {} }
   async function writeGuard(fn) {
     try { await fn(); }
@@ -1482,6 +1514,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     const changed = next !== page;
     page = next;
     for (const p of PAGES) $("page-" + p).hidden = p !== page;
+    fitText();
     document.querySelectorAll(".menu button").forEach((b) => { if (b.dataset.page === page) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
     if (page === "setup") fillSetup();
     if (changed && animate && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -1499,8 +1532,21 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     const v = view(); const T = todayDn();
     $("exampleNote").hidden = !!(cfg && parseYMD(cfg.start));
     renderHome(v, T); renderMilestonesPage(v, T); renderCalendar(v, T); renderSongPage(v, T); renderWishlist(v); renderClocks(v);
+    fitText();
     lastT = T;
   }
+  // shrink big display text until its longest word fits its column (long names, long milestone labels)
+  function fitText() {
+    document.querySelectorAll(".names, .page-h, .dl-what, .rd-name, .hlabel").forEach((n) => {
+      n.style.fontSize = "";
+      if (!n.clientWidth) return;   // on a hidden page; fitted when that page opens
+      let s = parseFloat(getComputedStyle(n).fontSize);
+      while (n.scrollWidth > n.clientWidth + 1 && s > 16) { s -= 2; n.style.fontSize = s + "px"; }
+    });
+  }
+  let fitTimer = 0;
+  window.addEventListener("resize", () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitText, 120); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitText);
   function tick() {
     const v = view(); const T = todayDn();
     if (T !== lastT) { if (calY === fromDn(lastT).y && calM === fromDn(lastT).m) { calY = fromDn(T).y; calM = fromDn(T).m; } renderAll(); }
@@ -1594,7 +1640,14 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 
   // ---------- shared store: claude.ai db or Firebase Firestore (same doc/collection API) ----------
   function storeError(e) {
-    if (e && e.code === "permission-denied") toast("This account isn't allowed to open the shared tracker. Check the allowed emails in your Firebase rules.");
+    if (!e || e.code !== "permission-denied") return;
+    toast("This account isn't allowed to open the shared tracker. Check the allowed emails in your Firebase rules.");
+    if (fbUser) {
+      // offer a one-click switch to the right Google account
+      $("syncText").textContent = "Signed in as " + fbUser.email + ", which isn't on the allowed list.";
+      $("signInBtn").textContent = "Switch account";
+      $("syncBar").hidden = false;
+    }
   }
   function connectStore(db) {
     const pendingWishes = wishes.slice();
@@ -1641,7 +1694,13 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   $("signInBtn").addEventListener("click", async () => {
     if (!window.firebase || !firebase.apps.length) return;
     const p = new firebase.auth.GoogleAuthProvider();
-    try { await firebase.auth().signInWithPopup(p); }
+    p.setCustomParameters({ prompt: "select_account" });   // always show Google's account picker
+    const switching = !!firebase.auth().currentUser;
+    try {
+      if (switching) await firebase.auth().signOut();
+      await firebase.auth().signInWithPopup(p);
+      if (switching) location.reload();
+    }
     catch (e) {
       if (e && /popup|operation-not-supported/.test(e.code || "")) firebase.auth().signInWithRedirect(p);
       else toast("Sign-in didn't finish. Try again.");
