@@ -1,0 +1,1602 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}img{max-width:100%}</style></head><body>
+<title>Phantom Days</title>
+<meta charset="utf-8">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Alfa+Slab+One&family=Anton&family=Archivo+Black&family=Arsenal:ital,wght@0,400;0,700;1,700&family=Bangers&display=swap">
+<style>
+/* Layout: P5 menu screen. Red halftone ground, black shards, skewed panels. A fixed header (date + clocks + menu) and one page at a time below it. Single committed look (no light theme). */
+:root {
+  --red: #e5191c;
+  --red-deep: #8f0a0e;
+  --ink: #0b0b0b;
+  --ink-2: #1e1e1e;
+  --paper: #f8f4ec;
+  --white: #ffffff;
+  --soft: #efe9df;
+  --yellow: #ffe500;
+  --cyan: #1fd6ff;
+  --magenta: #ff2fb3;
+  --f-display: "Anton", "Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif;
+  --f-tarot: "Bangers", "Anton", "Impact", sans-serif;
+  --f-body: "Arsenal", "Optima", "Candara", "Segoe UI", sans-serif;
+  --f-r1: "Abril Fatface", "Cooper Black", Georgia, serif;
+  --f-r2: "Archivo Black", "Arial Black", sans-serif;
+  --f-r3: "Alfa Slab One", "Rockwell Extra Bold", serif;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html { background: var(--red); }
+body {
+  background-color: var(--red);
+  background-image: radial-gradient(rgba(0,0,0,.16) 1.2px, transparent 1.8px);
+  background-size: 9px 9px;
+  color: var(--white);
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.45;
+  overflow-x: hidden;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--ink); }
+.shards { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.shards::before, .shards::after { content: ""; position: absolute; background: var(--ink); }
+.shards::before { inset: 0 auto 0 0; width: 46vw; clip-path: polygon(0 0, 62% 0, 18% 100%, 0 100%); opacity: .92; }
+.shards::after { right: 0; bottom: 0; width: 38vw; height: 55vh; clip-path: polygon(100% 0, 100% 100%, 0 100%); background: var(--red-deep); opacity: .55; }
+
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 1280px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 90px;
+  display: flex; flex-direction: column; gap: 22px;
+}
+
+/* ---------- ransom letters (headings only; every letter sits on a solid tile) ---------- */
+.ransom { display: flex; flex-wrap: wrap; align-items: center; gap: .08em .32em; line-height: 1; margin: 0; }
+.ransom .word { display: inline-flex; flex-wrap: nowrap; gap: .05em; }
+.ransom .rl { display: inline-block; padding: .08em .12em .04em; min-width: .55em; text-align: center; box-shadow: .06em .06em 0 rgba(0,0,0,.55); }
+.rl.v0 { background: var(--white); color: var(--ink); }
+.rl.v1 { background: var(--ink); color: var(--white); }
+.rl.v2 { background: var(--red); color: var(--white); }
+.rl.v3 { background: var(--white); color: var(--red); }
+.f0 { font-family: var(--f-r1); }
+.f1 { font-family: var(--f-r2); }
+.f2 { font-family: var(--f-r3); }
+.f3 { font-family: var(--f-display); }
+
+/* ---------- "pop" lettering: P5 menu words. White mixed-font letters, thick black outline, stepped black extrusion ---------- */
+.pop { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .3em; line-height: .95; margin: 0; font-weight: 400; }
+.pop .word { display: inline-flex; align-items: baseline; flex-wrap: nowrap; }
+.pop .pl {
+  display: inline-block; color: var(--white);
+  -webkit-text-stroke: .15em var(--ink); paint-order: stroke fill;
+  text-shadow: .03em .03em 0 var(--ink), .06em .06em 0 var(--ink), .09em .09em 0 var(--ink), .12em .12em 0 var(--ink), .15em .15em 0 var(--ink), .2em .2em 0 rgba(0,0,0,.45);
+  transition: color .12s ease, transform .12s ease;
+}
+
+/* ---------- header ---------- */
+.topbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.datebug { position: relative; display: grid; grid-template-columns: auto auto; align-items: end; column-gap: 10px; padding: 8px 22px 12px 14px; transform: rotate(-4deg); }
+.datebug::before { content: ""; position: absolute; inset: 0; background: var(--white); clip-path: polygon(0 10%, 100% 0, 96% 100%, 3% 88%); z-index: -1; }
+.db-md { font-family: var(--f-r3); font-size: clamp(40px, 8vw, 64px); color: var(--ink); line-height: .9; letter-spacing: -.02em; grid-row: span 2; }
+.db-dow { font-family: var(--f-display); text-transform: uppercase; font-size: clamp(18px, 3.2vw, 24px); background: var(--ink); color: var(--white); padding: 2px 8px; transform: skew(-12deg) rotate(-6deg); justify-self: start; }
+.db-phase { font-family: var(--f-display); font-size: clamp(16px, 2.8vw, 21px); color: var(--red); text-transform: uppercase; transform: rotate(-6deg); }
+
+.clocks { display: flex; gap: 12px; flex-wrap: wrap; }
+.clock { background: var(--ink); color: var(--white); padding: 8px 18px 9px 14px; clip-path: polygon(4% 0, 100% 0, 95% 100%, 0 100%); display: grid; grid-template-columns: auto auto; column-gap: 10px; align-items: baseline; min-width: 0; }
+.clock:nth-child(2) { transform: rotate(2deg); background: var(--white); color: var(--ink); }
+.clk-zone { font-family: var(--f-display); font-size: 15px; background: var(--red); color: var(--white); padding: 0 6px; letter-spacing: .06em; align-self: center; }
+.clk-time { font-family: var(--f-display); font-size: clamp(28px, 5.4vw, 40px); line-height: 1; font-variant-numeric: tabular-nums; }
+.clk-time small { font-size: .45em; margin-left: 3px; }
+.clk-sub { grid-column: 1 / -1; font-family: var(--f-display); font-size: 14px; text-transform: uppercase; letter-spacing: .08em; }
+
+/* ---------- menu ---------- */
+.shell { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 30px; align-items: start; }
+.main { display: grid; gap: 22px; min-width: 0; }
+.menu { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 14px 0 40px; }
+.menu button {
+  all: unset; box-sizing: border-box; cursor: pointer; position: relative; isolation: isolate;
+  font-size: 44px; padding: 6px 14px 10px 10px;
+  transform: rotate(-8deg); transition: transform .14s ease;
+}
+.menu button:nth-child(2) { margin-left: 26px; }
+.menu button:nth-child(3) { margin-left: 8px; }
+.menu button:nth-child(4) { margin-left: 34px; font-size: 36px; }
+.menu button:nth-child(5) { margin-left: 14px; }
+.menu button:nth-child(6) { margin-left: 44px; }
+.menu button:hover { transform: rotate(-10deg) translateX(8px); }
+.menu button:hover .pl { color: #ff4245; }
+.menu button[aria-current="page"] { transform: rotate(-11deg) scale(1.2); z-index: 2; margin-block: 12px; }
+.menu button[aria-current="page"]::before { content: ""; position: absolute; inset: -4px -14px -6px -10px; background: var(--white); clip-path: polygon(3% 10%, 100% 0, 95% 100%, 0 86%); z-index: -1; }
+.menu button[aria-current="page"]::after { content: ""; position: absolute; inset: -14px -30px 2px -2px; background: linear-gradient(100deg, #24e1ff 0 28%, #ff2bd6 28% 60%, #ffe600 60%); clip-path: polygon(0 24%, 100% 0, 90% 78%, 10% 100%); z-index: -2; }
+.menu button[aria-current="page"] .pl { color: var(--ink); -webkit-text-stroke: 0; text-shadow: .04em .04em 0 rgba(0,0,0,.18); }
+.menu .cap { display: none; position: absolute; right: -20px; bottom: -14px; font-family: var(--f-body); font-weight: 700; font-size: 12px; line-height: 1; background: var(--ink); color: var(--white); padding: 3px 8px; white-space: nowrap; transform: rotate(4deg); }
+.menu button[aria-current="page"] .cap { display: block; }
+.menu button:focus-visible { outline: 3px dashed var(--white); outline-offset: 4px; }
+
+/* ---------- generic buttons ---------- */
+.p5btn {
+  all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--f-display); text-transform: uppercase; letter-spacing: .04em; font-size: 18px;
+  background: var(--ink); color: var(--white); padding: 9px 22px 9px 18px;
+  clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+  transition: transform .12s ease, background .12s ease, color .12s ease;
+  text-decoration: none;
+}
+.p5btn:hover { background: var(--white); color: var(--red); transform: translate(-2px, -2px) rotate(-2deg); }
+.p5btn:focus-visible { outline: 3px dashed var(--white); outline-offset: 3px; }
+.p5btn.red { background: var(--red); }
+.p5btn.red:hover { background: var(--white); color: var(--red); }
+.p5btn.light { background: var(--white); color: var(--ink); }
+.p5btn.light:hover { background: var(--ink); color: var(--white); }
+.p5btn.small { font-size: 15px; padding: 6px 16px 6px 12px; }
+.p5btn[disabled] { opacity: .45; pointer-events: none; }
+
+.note { background: var(--white); color: var(--ink); padding: 10px 16px; transform: rotate(-1deg); border-left: 10px solid var(--ink); display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+
+/* ---------- pages ---------- */
+.page { display: grid; gap: 24px; }
+.page-h { font-size: clamp(44px, 7vw, 72px); margin: 10px 0 6px; transform: rotate(-3deg); transform-origin: left center; position: relative; isolation: isolate; justify-self: start; max-width: calc(100% - 20px); padding: 14px 36px 22px 20px; }
+.page-h::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--ink); clip-path: polygon(0 12%, 100% 0, 96% 100%, 3% 86%); }
+.page-h::after { content: ""; position: absolute; inset: 14px -16px -12px 18px; z-index: -2; clip-path: polygon(0 14%, 100% 0, 97% 100%, 2% 90%);
+  background: radial-gradient(circle, rgba(0,0,0,.4) 1.7px, transparent 2.3px) 0 0 / 7px 7px, var(--yellow); }
+.page-sub { margin: -10px 0 0; font-size: 17px; color: var(--soft); }
+.wipe { position: fixed; inset: 0; z-index: 30; pointer-events: none; background: var(--ink); clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); }
+.wipe::after { content: ""; position: absolute; inset: 0; background: var(--red); clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); }
+.wipe.go { animation: wipe .46s cubic-bezier(.7,0,.3,1); }
+.wipe.go::after { animation: wipe2 .46s cubic-bezier(.7,0,.3,1); }
+@keyframes wipe {
+  0% { clip-path: polygon(0 0, 0 0, -20% 100%, -20% 100%); }
+  45% { clip-path: polygon(0 0, 120% 0, 100% 100%, -20% 100%); }
+  100% { clip-path: polygon(120% 0, 120% 0, 100% 100%, 100% 100%); }
+}
+@keyframes wipe2 {
+  0%, 15% { clip-path: polygon(0 0, 0 0, -20% 100%, -20% 100%); }
+  50% { clip-path: polygon(0 40%, 120% 30%, 120% 55%, 0 70%); }
+  100% { clip-path: polygon(120% 30%, 120% 30%, 120% 55%, 120% 55%); }
+}
+
+/* ---------- home ---------- */
+.eyebrow { margin: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .1em; font-size: 18px; display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.eyebrow b { background: var(--ink); padding: 2px 10px; transform: skew(-10deg); font-weight: 400; }
+.names { font-size: clamp(38px, 8vw, 84px); }
+.bigcount { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.bc-label { font-family: var(--f-display); font-size: clamp(28px, 5vw, 44px); background: var(--ink); padding: 2px 14px; transform: rotate(-8deg) translateY(-30%); text-transform: uppercase; }
+.bc-num { font-family: var(--f-display); font-size: clamp(110px, 24vw, 230px); line-height: .82; transform: skew(-9deg); color: var(--white); text-shadow: 7px 7px 0 var(--ink), -3px -3px 0 var(--red-deep); font-variant-numeric: tabular-nums; }
+.bc-side { font-family: var(--f-display); font-size: clamp(18px, 3vw, 26px); text-transform: uppercase; line-height: 1.1; padding-bottom: 10px; }
+.bc-side span { display: block; color: var(--ink); background: var(--white); padding: 0 8px; margin-top: 4px; width: max-content; max-width: 100%; }
+.ticker { font-family: var(--f-display); font-size: clamp(15px, 2.4vw, 20px); letter-spacing: .05em; background: var(--ink); padding: 6px 14px; display: flex; flex-wrap: wrap; gap: 4px 22px; transform: skew(-6deg); font-variant-numeric: tabular-nums; }
+.ticker span b { color: var(--red); font-weight: 400; margin-left: 6px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.tile { background: var(--ink); padding: 14px 16px 16px; border: 4px solid var(--ink); box-shadow: 8px 8px 0 var(--tc, var(--yellow)), 8px 8px 0 4px var(--ink); display: grid; gap: 2px; min-width: 0; }
+.tile:nth-child(even) { background: var(--white); color: var(--ink); transform: rotate(1.5deg); }
+.tile:nth-child(odd) { transform: rotate(-1deg); }
+.tile-k { font-family: var(--f-tarot); font-size: 26px; letter-spacing: .06em; color: var(--red); line-height: 1; }
+.tile-v { font-family: var(--f-display); font-size: clamp(40px, 6vw, 58px); line-height: 1; font-variant-numeric: tabular-nums; }
+.tile-s { font-size: 15px; }
+.tile:nth-child(1) { --tc: var(--yellow); }
+.tile:nth-child(2) { --tc: var(--cyan); }
+.tile:nth-child(3) { --tc: var(--magenta); }
+.tile:nth-child(4) { --tc: var(--yellow); }
+.tile:nth-child(1) .tile-k { color: var(--yellow); }
+.tile:nth-child(2) .tile-k { color: var(--red); }
+.tile:nth-child(3) .tile-k { color: var(--cyan); }
+.tile:nth-child(4) .tile-k { color: var(--magenta); }
+
+/* ---------- home hub ---------- */
+.hub-hero { position: relative; display: grid; gap: 20px; padding-block: 6px 10px; }
+.hub-hero > :not(.deco) { position: relative; z-index: 1; }
+.deco { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.deco svg { position: absolute; overflow: visible; }
+.ol { stroke: var(--ink); stroke-width: 5; stroke-linejoin: round; paint-order: stroke fill; }
+.d-burst { width: min(440px, 80vw); aspect-ratio: 1; left: 30px; top: 150px; fill: var(--yellow); animation: turn 70s linear infinite; }
+.d-burst polygon { stroke: var(--ink); stroke-width: 2.4; }
+.d-burst2 { width: min(260px, 50vw); aspect-ratio: 1; right: 2%; top: 30px; fill: var(--ink); animation: turn 50s linear infinite reverse; }
+.d-mask { width: 170px; right: 2%; top: 330px; fill: var(--white); transform: rotate(-12deg); }
+.d-star { aspect-ratio: 1; animation: twinkle 3.2s ease-in-out infinite; }
+.d-star.s1 { width: 74px; right: 30%; top: -6px; fill: var(--yellow); }
+.d-star.s2 { width: 34px; right: 3%; top: 52%; fill: var(--white); animation-delay: -1s; }
+.d-star.s3 { width: 48px; left: 54%; bottom: 18%; fill: var(--cyan); animation-delay: -2s; }
+.d-star.s4 { width: 26px; left: -8px; top: 30%; fill: var(--white); animation-delay: -.5s; }
+.d-star.s5 { width: 30px; right: 18%; top: 44%; fill: var(--magenta); animation-delay: -1.6s; }
+.d-bolt { width: 62px; aspect-ratio: 1; right: 22%; top: 230px; fill: var(--yellow); transform: rotate(14deg); }
+.d-heart { width: 120px; aspect-ratio: 1; right: 5%; bottom: 13%; fill: var(--magenta); transform: rotate(10deg); animation: beat 1.6s ease-in-out infinite; }
+.d-mini { width: 40px; aspect-ratio: 1; fill: var(--magenta); animation: bob 3.4s ease-in-out infinite; }
+.d-mini.m1 { left: 4%; top: 110px; rotate: -16deg; }
+.d-mini.m2 { right: 36%; top: 58%; width: 30px; fill: var(--white); animation-delay: -1.2s; }
+.d-mini.m3 { left: 42%; top: 6px; width: 34px; fill: var(--yellow); animation-delay: -2.1s; rotate: 12deg; }
+@keyframes bob { 50% { translate: 0 -10px; scale: 1.08; } }
+.d-rays { position: absolute; width: 1000px; aspect-ratio: 1; left: -260px; top: -160px;
+  background: repeating-conic-gradient(from 0deg, rgba(255,255,255,.2) 0deg 2.5deg, transparent 2.5deg 9deg);
+  -webkit-mask-image: radial-gradient(circle, transparent 14%, #000 26%, rgba(0,0,0,.6) 46%, transparent 66%);
+  mask-image: radial-gradient(circle, transparent 14%, #000 26%, rgba(0,0,0,.6) 46%, transparent 66%); }
+.deco { overflow: hidden; inset: -30px -10px 0 -20px; }
+.hmeter { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.hmeter svg { width: 30px; height: 30px; fill: var(--magenta); transition: transform .15s; }
+.hmeter svg.off { fill: #3a3a3a; }
+.hmeter svg:not(.off):last-of-type { transform: scale(1.15) rotate(-8deg); }
+.hm-cap { margin: 0; font-size: 15px; color: var(--soft); }
+.fly { position: fixed; z-index: 50; width: 36px; height: 36px; pointer-events: none; }
+.bc-num { cursor: pointer; }
+.bc-heart { width: 28px; height: 28px; fill: var(--magenta); vertical-align: -5px; margin-left: 6px; }
+.ev-heart { width: 20px; height: 20px; fill: var(--magenta); vertical-align: -4px; margin-right: 6px; }
+.witem svg.star { width: 24px; height: 24px; fill: var(--magenta); vertical-align: -4px; margin-right: 6px; }
+@keyframes turn { to { transform: rotate(360deg); } }
+@keyframes twinkle { 50% { transform: scale(.75) rotate(20deg); } }
+@keyframes beat { 0%, 100% { transform: rotate(10deg) scale(1); } 15% { transform: rotate(10deg) scale(1.15); } 30% { transform: rotate(10deg) scale(.98); } }
+
+/* comic speech bubble with a tail pointing up at the day count */
+.calling { justify-self: start; max-width: 640px; margin: 14px 0 0 24px; position: relative; background: var(--white); color: var(--ink); border: 4px solid var(--ink); border-radius: 26px 34px 24px 30px / 30px 24px 34px 26px; padding: 14px 24px 14px 18px; font-size: 20px; line-height: 1.35; transform: rotate(-1.5deg); box-shadow: 8px 8px 0 var(--ink); }
+.calling::before { content: ""; position: absolute; left: 44px; top: -27px; border-left: 14px solid transparent; border-right: 14px solid transparent; border-bottom: 24px solid var(--ink); transform: skew(-30deg); }
+.calling::after { content: ""; position: absolute; left: 49px; top: -16px; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 16px solid var(--white); transform: skew(-30deg); }
+.calling b { display: inline-block; font-family: var(--f-tarot); font-weight: 400; font-size: 18px; letter-spacing: .08em; background: var(--yellow); color: var(--ink); padding: 0 10px; margin-right: 10px; transform: skew(-12deg); }
+
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; background: var(--ink); padding: 10px 10px 12px; transform: skew(-4deg) rotate(-1deg); box-shadow: 10px 10px 0 var(--yellow), 10px 10px 0 4px var(--ink); margin-right: 14px; }
+.wk { all: unset; cursor: pointer; display: grid; justify-items: center; gap: 2px; padding: 6px 2px; color: var(--white); position: relative; transition: transform .12s; }
+.wk:hover { transform: translateY(-3px); }
+.wk:focus-visible { outline: 3px dashed var(--white); outline-offset: -3px; }
+.wk .wd { font-family: var(--f-display); font-size: 14px; letter-spacing: .08em; }
+.wk .wn { font-family: var(--f-r3); font-size: clamp(24px, 3.6vw, 36px); line-height: 1; }
+.wk .wi { display: flex; gap: 3px; min-height: 18px; align-items: center; }
+.wk .wi svg { width: 16px; height: 16px; }
+.wk.past { opacity: .45; }
+.wk.sun .wd { color: #ff5a5c; }
+.wk.sat .wd { color: var(--cyan); }
+.wk.now { background: var(--white); color: var(--ink); transform: scale(1.12) rotate(-3deg); z-index: 1; box-shadow: 5px 5px 0 var(--red); }
+.wk.now .wn { color: var(--red); }
+
+.hub-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px 24px; align-items: stretch; }
+.panel.hcard { position: relative; display: grid; gap: 12px; align-content: start; padding: 80px 22px 70px; }
+.panel.hc-fortune { padding-bottom: 28px; }
+.hc-song .song-k { display: none; }
+@media (max-width: 1120px) { .hub-grid { grid-template-columns: minmax(0, 1fr); } }
+.hcard:nth-child(odd) { transform: rotate(-.8deg); }
+.hcard:nth-child(even) { transform: rotate(.7deg); }
+.hlabel { position: absolute; top: 12px; left: 14px; isolation: isolate; font-size: 32px; padding: 4px 18px 10px 10px; transform: rotate(-4deg); }
+.hlabel::before { content: ""; position: absolute; inset: 8px -8px 2px -4px; background: var(--lab, var(--red)); clip-path: polygon(2% 14%, 100% 0, 96% 100%, 0 88%); z-index: -1; }
+.hc-next { --lab: var(--yellow); }
+.hc-song { --lab: var(--cyan); }
+.hc-wish { --lab: var(--magenta); }
+.hc-hol { --lab: var(--red); }
+.panel.hc-next { --bd: var(--yellow); }
+.panel.hc-song { --bd: var(--cyan); }
+.panel.hc-wish { --bd: var(--magenta); }
+.panel.hc-hol { --bd: var(--ink); }
+.panel.hc-fortune { --bd: var(--white); }
+.hc-fortune { --lab: linear-gradient(100deg, var(--cyan) 0 33%, var(--magenta) 33% 66%, var(--yellow) 66%); grid-column: 1 / -1; }
+.panel-h .pop { font-size: 34px; text-transform: none; letter-spacing: 0; }
+.empty-h { font-size: 34px; }
+
+/* ---------- daily fortune ---------- */
+.fortune { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 30px; align-items: center; }
+.tarot { all: unset; box-sizing: border-box; cursor: pointer; display: block; width: 180px; aspect-ratio: 5 / 8; max-width: 100%; perspective: 900px; }
+.tarot:focus-visible { outline: 3px dashed var(--white); outline-offset: 6px; }
+.tarot-inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .8s cubic-bezier(.3, 1.35, .5, 1); transform: rotate(-4deg); }
+.tarot:hover .tarot-inner { transform: rotate(-6deg) translateY(-4px); }
+.tarot.flipped .tarot-inner { transform: rotateY(180deg) rotate(4deg); }
+.tface { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border: 5px solid var(--ink); box-shadow: 8px 8px 0 var(--red); display: grid; place-items: center; overflow: hidden; }
+.tback { background: var(--ink); background-image: repeating-linear-gradient(45deg, var(--red) 0 10px, var(--ink) 10px 20px); }
+.tback::after { content: ""; position: absolute; inset: 12px; border: 3px solid var(--white); }
+.tback svg { width: 60%; fill: var(--yellow); position: relative; z-index: 1; filter: drop-shadow(4px 4px 0 var(--ink)); }
+.tback .tb-cap { position: absolute; bottom: 18px; left: 0; right: 0; text-align: center; z-index: 1; font-family: var(--f-tarot); font-size: 22px; letter-spacing: .08em; color: var(--white); text-shadow: 2px 2px 0 var(--ink); }
+.tfront { background: var(--white); color: var(--ink); transform: rotateY(180deg); }
+.tf-body { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; padding: 10px 8px 12px; background: radial-gradient(circle at 50% 45%, rgba(229,25,28,.16) 0 36%, transparent 37%), repeating-radial-gradient(circle at 50% 45%, transparent 0 9px, rgba(0,0,0,.05) 9px 10px); }
+.tfront.rev .tf-body { transform: rotate(180deg); }
+.tf-num { font-family: var(--f-r3); font-size: 26px; line-height: 1; }
+.tf-body svg { width: 62%; align-self: center; fill: var(--red); }
+.tf-fr { font-family: var(--f-tarot); font-size: 28px; line-height: .95; text-align: center; background: var(--ink); color: var(--white); padding: 4px 10px 2px; transform: rotate(-4deg); letter-spacing: .02em; }
+.reading { display: grid; gap: 10px; min-width: 0; }
+.rd-k { margin: 0; font-family: var(--f-tarot); font-size: 22px; letter-spacing: .08em; color: var(--yellow); }
+.rd-name { font-size: clamp(36px, 4.6vw, 50px); }
+.rd-flag { display: inline-block; font-family: var(--f-display); font-size: 15px; letter-spacing: .08em; background: var(--magenta); color: var(--white); padding: 2px 10px; transform: skew(-10deg); justify-self: start; }
+.rd-text { margin: 0; font-size: 20px; line-height: 1.4; }
+.rd-p5 { margin: 0; font-size: 15px; color: var(--soft); }
+.quote { margin: 6px 0 0; position: relative; background: var(--white); color: var(--ink); padding: 18px 22px 14px 54px; transform: rotate(-1deg); clip-path: polygon(0 4%, 100% 0, 99% 100%, 1% 96%); }
+.quote::before { content: "\201C"; position: absolute; left: 10px; top: -6px; font-family: var(--f-r1); font-size: 84px; line-height: 1; color: var(--red); }
+.quote p { margin: 0; font-family: var(--f-r1); font-size: 21px; line-height: 1.35; }
+.quote cite { display: block; margin-top: 8px; font-style: normal; font-family: var(--f-display); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; color: var(--red); }
+@media (max-width: 640px) {
+  .fortune { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .tarot { width: 150px; }
+  .reading { justify-items: start; width: 100%; }
+}
+.hgo { all: unset; box-sizing: border-box; cursor: pointer; position: absolute; right: 16px; bottom: 16px; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .05em; font-size: 16px; background: var(--red); color: var(--white); padding: 7px 18px 7px 14px; clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); transition: background .12s, color .12s, transform .12s; }
+.hgo:hover { background: var(--yellow); color: var(--ink); transform: translateX(4px); }
+.hgo:focus-visible { outline: 3px dashed currentColor; outline-offset: 3px; }
+.hc-wish .hgo { background: var(--ink); }
+.wsum { display: grid; gap: 10px; }
+.wsum-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.wsum-who { font-family: var(--f-display); font-size: 20px; text-transform: uppercase; background: var(--ink); color: var(--white); padding: 4px 14px; transform: skew(-8deg); }
+.wsum-who b { font-weight: 400; color: var(--yellow); margin-left: 6px; }
+.wsum-want { font-size: 17px; }
+.wsum-want span { font-family: var(--f-display); font-size: 22px; text-transform: uppercase; display: block; line-height: 1.1; }
+.wsum-want svg { width: 18px; height: 18px; fill: var(--magenta); vertical-align: -2px; margin-right: 4px; }
+
+.slam { animation: slam .55s cubic-bezier(.2, 1.5, .4, 1) both; animation-delay: var(--d, 0s); }
+@keyframes slam { from { translate: -40px 0; scale: 1.1; } }
+
+/* ---------- panels ---------- */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+/* comic panel: inked frame on ::before, halftone backdrop offset behind it on ::after */
+.panel { --pbg: var(--ink); --bd: var(--yellow); position: relative; isolation: isolate; padding: 22px 22px 24px; min-width: 0; }
+.panel::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--pbg); border: 4px solid var(--ink); }
+.panel::after { content: ""; position: absolute; inset: 14px -14px -14px 14px; z-index: -2; border: 4px solid var(--ink);
+  background: radial-gradient(circle, rgba(0,0,0,.42) 1.7px, transparent 2.3px) 0 0 / 7px 7px, var(--bd); }
+.panel.light { --pbg: var(--paper); --bd: var(--cyan); color: var(--ink); }
+.panel-h { margin: 0 0 14px; font-family: var(--f-display); font-weight: 400; font-size: 28px; text-transform: uppercase; letter-spacing: .03em; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.panel-h small { font-family: var(--f-body); text-transform: none; letter-spacing: 0; font-size: 15px; font-weight: 700; }
+.panel .panel-h small { color: var(--soft); }
+.panel.light .panel-h small { color: #4a4540; }
+
+/* deadline banner */
+.deadline { position: relative; margin: 6px 0 4px; display: grid; }
+.dl-until { justify-self: start; margin-left: 18%; margin-bottom: 4px; font-family: var(--f-tarot); font-size: 22px; letter-spacing: .06em; background: var(--yellow); color: var(--ink); padding: 0 12px; transform: rotate(-5deg) skew(-8deg); position: relative; z-index: 2; box-shadow: 3px 3px 0 var(--ink); }
+.dl-row { display: flex; align-items: center; gap: 10px; transform: rotate(-3deg); flex-wrap: wrap; }
+.dl-what { font-size: clamp(36px, 5vw, 52px); }
+.dl-what .pl { color: var(--white); }
+.dl-what .word:first-child .pl { color: var(--yellow); }
+.dl-num { font-family: var(--f-display); font-size: clamp(34px, 6vw, 54px); background: var(--white); color: var(--ink); padding: 0 14px; transform: skew(-12deg) rotate(4deg); line-height: 1.1; border: 4px solid var(--ink); outline: 3px solid var(--white); }
+.dl-bar { background: var(--red); color: var(--white); padding: 4px 14px; margin-top: 8px; transform: rotate(-2deg); clip-path: polygon(0 0, 100% 10%, 99% 100%, 1% 90%); }
+
+.evlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ev { display: grid; grid-template-columns: 74px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 6px 10px 6px 0; border-bottom: 1px solid rgba(255,255,255,.14); }
+.panel.light .ev { border-bottom-color: rgba(0,0,0,.14); }
+.ev-date { font-family: var(--f-r3); font-size: 20px; line-height: 1; text-align: center; padding: 6px 0; background: var(--white); color: var(--ink); transform: rotate(-3deg); font-variant-numeric: tabular-nums; }
+.ev-date small { display: block; font-family: var(--f-display); font-size: 12px; letter-spacing: .08em; color: var(--red); margin-top: 3px; }
+.panel.light .ev-date { background: var(--ink); color: var(--white); }
+.ev-name { font-size: 17px; min-width: 0; overflow-wrap: break-word; }
+.ev-name em { display: block; font-style: normal; font-weight: 400; font-size: 15px; }
+.ev-in { font-family: var(--f-display); font-size: 18px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ev.big .ev-name { color: var(--red); }
+.panel:not(.light) .ev.big .ev-name { color: #ff5a5c; }
+.ev.today { background: var(--red); }
+.ev.today .ev-name, .ev.today .ev-in { color: var(--white) !important; }
+.tag { display: inline-block; font-family: var(--f-display); font-size: 12px; letter-spacing: .08em; padding: 0 6px; margin-right: 6px; vertical-align: 2px; background: var(--red); color: var(--white); }
+.tag.hol { background: var(--ink); }
+
+/* ---------- calendar ---------- */
+.cal-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.cal-title { font-family: var(--f-display); font-size: clamp(30px, 5vw, 44px); line-height: 1; text-transform: uppercase; transform: skew(-8deg); }
+.cal-title span { color: var(--red); margin-left: 8px; }
+.cal-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.cal-scroll { overflow-x: auto; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(40px, 1fr)); gap: 5px; min-width: 300px; }
+.cal-dow { font-family: var(--f-display); font-size: 14px; text-align: center; letter-spacing: .08em; padding-bottom: 4px; }
+.cal-dow.sun { color: var(--red); }
+.cal-day {
+  all: unset; box-sizing: border-box; cursor: pointer; position: relative;
+  min-height: 64px; padding: 5px 6px; background: var(--ink-2); color: var(--white);
+  display: flex; flex-direction: column; justify-content: space-between; gap: 2px;
+  clip-path: polygon(3% 0, 100% 0, 97% 100%, 0 100%);
+  transition: background .1s, transform .1s;
+}
+.cal-day:hover { background: #343434; transform: scale(1.04); z-index: 2; }
+.cal-day:focus-visible { outline: 3px dashed var(--white); outline-offset: -3px; }
+.cal-day .n { font-family: var(--f-display); font-size: 22px; line-height: 1; }
+.cal-day .m { display: flex; flex-wrap: wrap; gap: 3px; min-height: 12px; }
+.cal-day .dot { width: 10px; height: 10px; background: var(--red); transform: rotate(45deg); }
+.cal-day .dot.big { background: var(--white); outline: 2px solid var(--red); }
+.cal-day .dot.hol { background: transparent; border: 2px solid var(--white); border-radius: 50%; transform: none; }
+.cal-day.today .dot.hol { border-color: var(--ink); }
+.cal-day.before { opacity: .4; }
+.cal-day.today { background: var(--white); color: var(--ink); }
+.cal-day.today .n { color: var(--red); }
+.cal-day.sel { outline: 3px solid var(--red); outline-offset: -3px; }
+.cal-day.blank { visibility: hidden; pointer-events: none; }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 15px; margin-top: 12px; align-items: center; }
+.cal-legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; }
+.cal-legend .l1 { background: var(--red); transform: rotate(45deg); }
+.cal-legend .l2 { background: var(--white); outline: 2px solid var(--red); transform: rotate(45deg); }
+.cal-legend .l3 { border: 2px solid var(--white); border-radius: 50%; }
+.cal-detail { margin-top: 16px; background: var(--white); color: var(--ink); padding: 12px 16px; transform: rotate(-.6deg); display: grid; gap: 4px; }
+.cal-detail h3 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 24px; text-transform: uppercase; }
+.cal-detail p { margin: 0; }
+.cal-detail ul { margin: 0; padding-left: 20px; }
+
+/* ---------- song ---------- */
+.song-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 22px; align-items: center; }
+.disc { width: 150px; aspect-ratio: 1; max-width: 100%; border-radius: 50%; position: relative;
+  background: repeating-radial-gradient(circle, #111 0 3px, #262626 3px 5px); box-shadow: 6px 6px 0 var(--red), -4px -4px 0 var(--white); animation: spin 6s linear infinite; }
+.disc::after { content: ""; position: absolute; inset: 34%; border-radius: 50%; background: var(--red); border: 6px solid var(--white); box-sizing: border-box; }
+.song-card.mini .disc { width: 96px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.disc.fast { animation-duration: .35s; }
+.song-k { font-family: var(--f-tarot); color: var(--cyan); font-size: 24px; letter-spacing: .08em; }
+.song-t { font-family: var(--f-display); font-size: clamp(34px, 6vw, 60px); line-height: 1.02; margin: 2px 0 6px; transform: skew(-6deg); overflow-wrap: break-word; }
+.song-card.mini .song-t { font-size: clamp(28px, 4vw, 40px); }
+.song-a { font-size: 20px; }
+.song-meta { font-size: 15px; color: var(--soft); margin-top: 2px; }
+.song-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; align-items: center; }
+.song-url { display: block; margin-top: 10px; font-family: ui-monospace, Consolas, monospace; font-weight: 400; font-size: 13px; color: var(--soft); user-select: all; overflow-wrap: anywhere; }
+.song-hist { display: grid; gap: 8px; }
+.sh-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; font-size: 16px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,.14); }
+.sh-row .d { font-family: var(--f-display); font-variant-numeric: tabular-nums; color: #ff5a5c; font-size: 18px; }
+.sh-row .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sh-row a { color: var(--white); font-family: var(--f-display); font-size: 15px; letter-spacing: .05em; }
+.empty { background: var(--white); color: var(--ink); padding: 16px 18px; transform: rotate(-.8deg); display: grid; gap: 8px; }
+.empty b { font-family: var(--f-display); font-weight: 400; font-size: 24px; text-transform: uppercase; }
+.empty p { margin: 0; }
+
+/* ---------- wishlist ---------- */
+.whoami { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-family: var(--f-display); font-size: 20px; text-transform: uppercase; letter-spacing: .04em; }
+.whoami .p5btn[aria-pressed="true"] { background: var(--white); color: var(--red); transform: rotate(-3deg) scale(1.08); }
+.wish-form { color-scheme: light; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr); gap: 10px 14px; align-items: end; }
+.wish-form label { display: grid; gap: 4px; font-size: 15px; min-width: 0; }
+.wish-form .wide { grid-column: span 2; }
+.wish-form .check { display: flex; gap: 8px; align-items: center; font-size: 16px; }
+.wish-form .check input { width: 20px; height: 20px; accent-color: var(--red); }
+.field { font: inherit; font-weight: 400; color: var(--ink); background: var(--white); border: 0; border-bottom: 3px solid var(--ink); padding: 8px 10px; min-width: 0; color-scheme: light; }
+.field:focus { outline: 3px solid var(--red); outline-offset: 0; }
+.wcols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.wlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.witem { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; padding: 10px 12px; background: var(--white); color: var(--ink); clip-path: polygon(0 0, 100% 3%, 99% 100%, 1% 97%); }
+.panel.light .witem { background: var(--ink); color: var(--white); }
+.witem:nth-child(even) { transform: rotate(.6deg); }
+.witem:nth-child(odd) { transform: rotate(-.5deg); }
+.witem .wt { font-family: var(--f-display); font-weight: 400; font-size: 22px; line-height: 1.1; text-transform: uppercase; overflow-wrap: anywhere; }
+.witem .wt a { color: inherit; text-decoration: underline; text-decoration-color: var(--red); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+.witem .wn { font-size: 15px; font-weight: 400; overflow-wrap: anywhere; }
+.witem .wp { font-family: var(--f-display); font-size: 18px; color: var(--red); white-space: nowrap; }
+.witem .wa { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.witem .star { color: var(--red); margin-right: 6px; }
+.witem.got { opacity: .55; }
+.witem.got .wt { text-decoration: line-through; text-decoration-color: var(--red); text-decoration-thickness: 3px; }
+.claimed { font-family: var(--f-display); font-size: 14px; letter-spacing: .06em; background: var(--red); color: var(--white); padding: 2px 8px; transform: skew(-10deg); }
+.wempty { font-size: 16px; padding: 6px 0; }
+
+/* ---------- setup form ---------- */
+.cfg { display: grid; gap: 22px; }
+.cfg fieldset { border: 0; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+.cfg legend { font-family: var(--f-display); font-size: 22px; text-transform: uppercase; background: var(--ink); color: var(--white); padding: 2px 12px; transform: skew(-10deg); margin-bottom: 10px; }
+.cfg label { display: grid; gap: 4px; font-size: 15px; min-width: 0; }
+.cfg label.full { grid-column: 1 / -1; }
+.cfg textarea.field { min-height: 120px; resize: vertical; font-size: 14px; font-family: ui-monospace, Consolas, monospace; }
+.cfg .hint { font-weight: 400; font-size: 14.5px; line-height: 1.45; }
+.cfg .hint code { background: rgba(0,0,0,.08); padding: 0 4px; }
+.cfg-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; }
+.cfg .where { font-size: 15px; }
+
+/* ---------- prompt footer ---------- */
+.prompt { position: fixed; z-index: 5; left: 0; right: 0; bottom: 0; background: var(--ink);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px 20px; font-family: var(--f-display); font-size: 15px; letter-spacing: .05em; }
+.prompt span { display: inline-flex; align-items: center; gap: 6px; }
+.prompt kbd { font-family: var(--f-display); background: var(--white); color: var(--ink); border-radius: 50%; min-width: 22px; height: 22px; display: inline-grid; place-items: center; font-size: 13px; padding: 0 4px; }
+
+.toast { position: fixed; z-index: 40; left: 50%; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) rotate(-2deg); background: var(--white); color: var(--ink); padding: 10px 20px; border: 4px solid var(--ink); box-shadow: 6px 6px 0 var(--red); max-width: calc(100vw - 48px); }
+
+@media (max-width: 860px) {
+  .split, .hub-grid, .wcols, .shell { grid-template-columns: minmax(0, 1fr); }
+  .d-mask { width: 110px; top: auto; bottom: 30%; }
+  .d-burst2, .d-bolt { display: none; }
+  .menu { position: static; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 4px 0 8px; }
+  .menu button, .menu button:nth-child(n) { margin-left: 0; font-size: 28px; transform: rotate(-5deg); }
+  .menu button[aria-current="page"] { transform: rotate(-7deg) scale(1.12); margin-block: 6px; }
+  .menu .cap, .menu button[aria-current="page"] .cap { display: none; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wish-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  body { font-size: 16px; }
+  .cfg fieldset, .wish-form { grid-template-columns: minmax(0, 1fr); }
+  .wish-form .wide { grid-column: auto; }
+  .song-card { grid-template-columns: minmax(0, 1fr); }
+  .disc { width: 110px; }
+  .ev { grid-template-columns: 62px minmax(0, 1fr) auto; gap: 8px; }
+  .cal-day { min-height: 52px; padding: 4px; }
+  .cal-day .n { font-size: 18px; }
+  .prompt { justify-content: center; font-size: 13px; }
+  .shards::before { width: 70vw; }
+  .menu button, .menu button:nth-child(n) { font-size: 23px; padding: 4px 8px 8px 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .disc, .d-burst, .d-burst2, .d-star, .d-heart, .d-mini, .d-rays, .slam { animation: none; }
+  .wipe.go, .wipe.go::after { animation: none; }
+  * { transition: none !important; }
+}
+</style>
+
+<div class="shards" aria-hidden="true"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="g-star" viewBox="0 0 100 100"><polygon class="ol" points="50,4 61,37 96,37 68,58 79,93 50,72 21,93 32,58 4,37 39,37"/></symbol>
+    <symbol id="g-mask" viewBox="0 0 100 56"><path class="ol" d="M3 22 C10 4 34 4 50 16 C66 4 90 4 97 22 C99 40 82 52 66 48 C58 46 54 40 50 36 C46 40 42 46 34 48 C18 52 1 40 3 22Z"/><path fill="#0b0b0b" d="M18 26 C22 17 34 17 40 26 C34 33 22 33 18 26Z M60 26 C66 17 78 17 82 26 C78 33 66 33 60 26Z"/></symbol>
+    <symbol id="g-bolt" viewBox="0 0 100 100"><polygon class="ol" points="42,2 12,56 40,56 26,98 88,36 58,36 74,2"/></symbol>
+    <symbol id="g-heart" viewBox="0 0 100 100"><path class="ol" d="M50 90 L12 52 C-4 34 10 8 32 12 C42 14 48 22 50 28 C52 22 58 14 68 12 C90 8 104 34 88 52 Z"/><path fill="#fff" d="M20 30 C24 21 34 19 40 24 C33 24 27 28 24 37 Z"/><circle fill="#fff" cx="22" cy="44" r="3.4"/><path fill="none" stroke="#0b0b0b" stroke-width="4" stroke-linecap="round" d="M58 70 L66 62"/></symbol>
+    <symbol id="g-heartburst" viewBox="0 0 100 100"><polygon id="hbPoly" class="ol" fill="#fff"/><svg x="22" y="22" width="56" height="56" viewBox="0 0 100 100"><use href="#g-heart"/></svg></symbol>
+  </defs>
+</svg>
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="datebug">
+      <span class="db-md" id="bugMD">--/--</span>
+      <span class="db-dow" id="bugDow">----</span>
+      <span class="db-phase" id="bugPhase">----</span>
+    </div>
+    <div class="clocks">
+      <div class="clock">
+        <span class="clk-zone" id="zA">PDT</span>
+        <span class="clk-time" id="tA">--:--</span>
+        <span class="clk-sub" id="sA">Pacific</span>
+      </div>
+      <div class="clock">
+        <span class="clk-zone" id="zB">MDT</span>
+        <span class="clk-time" id="tB">--:--</span>
+        <span class="clk-sub" id="sB">Mountain</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+  <nav class="menu" aria-label="Pages">
+    <button type="button" data-page="home"><span class="pop" data-pop="Home"></span><span class="cap">Everything at a glance</span></button>
+    <button type="button" data-page="milestones"><span class="pop" data-pop="Milestones"></span><span class="cap">Dates to celebrate</span></button>
+    <button type="button" data-page="calendar"><span class="pop" data-pop="Calendar"></span><span class="cap">Plan ahead</span></button>
+    <button type="button" data-page="song"><span class="pop" data-pop="Song of the Day"></span><span class="cap">Today's track</span></button>
+    <button type="button" data-page="wishlist"><span class="pop" data-pop="Wishlist"></span><span class="cap">Gift ideas</span></button>
+    <button type="button" data-page="setup"><span class="pop" data-pop="Setup"></span><span class="cap">Names, dates, songs</span></button>
+  </nav>
+  <main class="main">
+
+  <div class="note" id="exampleNote" hidden>
+    <span>These are example dates and names. Set your own anniversary to start the count.</span>
+    <button type="button" class="p5btn" data-page="setup">Set our date</button>
+  </div>
+
+  <!-- HOME -->
+  <section class="page" id="page-home" data-title="Home">
+    <div class="hub-hero">
+    <div class="deco" aria-hidden="true">
+      <div class="d-rays"></div>
+      <svg class="d-burst" viewBox="0 0 100 100"><polygon id="burst1"/></svg>
+      <svg class="d-burst2" viewBox="0 0 100 100"><polygon id="burst2"/></svg>
+      <svg class="d-mask" viewBox="0 0 100 56"><use href="#g-mask"/></svg>
+      <svg class="d-star s1" viewBox="0 0 100 100"><use href="#g-star"/></svg>
+      <svg class="d-star s2" viewBox="0 0 100 100"><use href="#g-star"/></svg>
+      <svg class="d-star s3" viewBox="0 0 100 100"><use href="#g-star"/></svg>
+      <svg class="d-star s4" viewBox="0 0 100 100"><use href="#g-star"/></svg>
+      <svg class="d-star s5" viewBox="0 0 100 100"><use href="#g-star"/></svg>
+      <svg class="d-bolt" viewBox="0 0 100 100"><use href="#g-bolt"/></svg>
+      <svg class="d-heart" viewBox="0 0 100 100"><use href="#g-heartburst"/></svg>
+      <svg class="d-mini m1" viewBox="0 0 100 100"><use href="#g-heart"/></svg>
+      <svg class="d-mini m2" viewBox="0 0 100 100"><use href="#g-heart"/></svg>
+      <svg class="d-mini m3" viewBox="0 0 100 100"><use href="#g-heart"/></svg>
+    </div>
+    <p class="eyebrow">Together since <b id="sinceTxt">----/--/--</b></p>
+    <h1 class="ransom names" id="namesTitle"></h1>
+    <div class="bigcount slam">
+      <span class="bc-label">Day</span>
+      <span class="bc-num" id="dayNum">0</span>
+      <div class="bc-side" id="bcSide"></div>
+    </div>
+    <p class="calling slam" style="--d:.1s"><b>Calling card</b><span id="callingLine"></span></p>
+    <div class="ticker" id="ticker"></div>
+    <div class="tiles">
+      <div class="tile"><span class="tile-k">Days</span><span class="tile-v" id="vDays">0</span><span class="tile-s" id="sDays"></span></div>
+      <div class="tile"><span class="tile-k">Weeks</span><span class="tile-v" id="vWeeks">0</span><span class="tile-s" id="sWeeks"></span></div>
+      <div class="tile"><span class="tile-k">Months</span><span class="tile-v" id="vMonths">0</span><span class="tile-s" id="sMonths"></span></div>
+      <div class="tile"><span class="tile-k">Years</span><span class="tile-v" id="vYears">0</span><span class="tile-s" id="sYears"></span></div>
+    </div>
+    </div>
+    <div class="week slam" style="--d:.15s" id="weekStrip" role="group" aria-label="This week"></div>
+    <div class="hub-grid">
+      <article class="panel hcard hc-fortune slam" style="--d:.18s">
+        <span class="hlabel pop" data-pop="Daily Fortune"></span>
+        <div class="fortune">
+          <button type="button" class="tarot" id="tarotCard" aria-label="Draw today's card"></button>
+          <div class="reading">
+            <p class="rd-k" id="rdKicker">Shuffle time</p>
+            <h3 class="pop rd-name" id="rdName"></h3>
+            <span class="rd-flag" id="rdFlag" hidden>Reversed</span>
+            <p class="rd-text" id="rdText"></p>
+            <p class="rd-p5" id="rdP5"></p>
+            <blockquote class="quote"><p id="quoteText"></p><cite id="quoteBy"></cite></blockquote>
+          </div>
+        </div>
+      </article>
+      <article class="panel hcard hc-next slam" style="--d:.2s">
+        <span class="hlabel pop" data-pop="Next Target"></span>
+        <div class="deadline" id="homeBanner"></div>
+        <div class="hmeter" id="hMeter" role="img"></div>
+        <p class="hm-cap" id="hMeterCap"></p>
+        <button type="button" class="hgo" data-page="milestones">All milestones &#9656;</button>
+      </article>
+      <article class="panel hcard hc-song slam" style="--d:.28s">
+        <span class="hlabel pop" data-pop="Today's Track"></span>
+        <div id="homeSong"></div>
+        <button type="button" class="hgo" data-page="song">Song page &#9656;</button>
+      </article>
+      <article class="panel light hcard hc-wish slam" style="--d:.36s">
+        <span class="hlabel pop" data-pop="Wishlist"></span>
+        <div class="wsum" id="hubWish"></div>
+        <button type="button" class="hgo" data-page="wishlist">Open wishlist &#9656;</button>
+      </article>
+      <article class="panel light hcard hc-hol slam" style="--d:.44s">
+        <span class="hlabel pop" data-pop="Coming Up"></span>
+        <ol class="evlist" id="homeHol"></ol>
+        <button type="button" class="hgo" data-page="calendar">Calendar &#9656;</button>
+      </article>
+    </div>
+  </section>
+
+  <!-- MILESTONES -->
+  <section class="page" id="page-milestones" data-title="Milestones" hidden>
+    <h1 class="pop page-h" data-pop="Milestones"></h1>
+    <p class="page-sub">Round numbers worth celebrating, and the holidays coming up.</p>
+    <div class="split">
+      <div class="panel">
+        <h2 class="panel-h">Milestones</h2>
+        <div class="deadline" id="nextBanner"></div>
+        <ol class="evlist" id="msList" style="margin-top:18px"></ol>
+      </div>
+      <div class="panel light">
+        <h2 class="panel-h">Holidays <small>and your own dates</small></h2>
+        <ol class="evlist" id="holList"></ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section class="page" id="page-calendar" data-title="Calendar" hidden>
+    <div class="panel">
+      <div class="cal-head">
+        <div class="cal-title" id="calTitle">Month</div>
+        <div class="cal-nav">
+          <button type="button" class="p5btn" id="calPrev" aria-label="Previous month">&#9664; Prev</button>
+          <button type="button" class="p5btn red" id="calToday">Today</button>
+          <button type="button" class="p5btn" id="calNext" aria-label="Next month">Next &#9654;</button>
+        </div>
+      </div>
+      <div class="cal-scroll"><div class="cal-grid" id="calGrid"></div></div>
+      <div class="cal-legend">
+        <span><i class="l1"></i>Milestone</span>
+        <span><i class="l2"></i>Big milestone</span>
+        <span><i class="l3"></i>Holiday or special date</span>
+      </div>
+      <div class="cal-detail" id="calDetail"></div>
+    </div>
+  </section>
+
+  <!-- SONG -->
+  <section class="page" id="page-song" data-title="Song of the Day" hidden>
+    <h1 class="pop page-h" data-pop="Song of the Day"></h1>
+    <p class="page-sub" id="songSub">From your shared playlist.</p>
+    <div class="panel"><div id="songBody"></div></div>
+    <div class="panel" id="songHistPanel">
+      <h2 class="panel-h">Earlier this week</h2>
+      <div class="song-hist" id="songHist"></div>
+    </div>
+  </section>
+
+  <!-- WISHLIST -->
+  <section class="page" id="page-wishlist" data-title="Wishlist" hidden>
+    <h1 class="pop page-h" data-pop="Wishlist"></h1>
+    <p class="page-sub" id="wishSub">Add things you'd like. Mark the other person's ideas when you plan to get them; they won't see it.</p>
+    <div class="whoami" role="group" aria-label="Which one are you?">
+      <span>I am</span>
+      <button type="button" class="p5btn" id="meA" aria-pressed="false">A</button>
+      <button type="button" class="p5btn" id="meB" aria-pressed="false">B</button>
+    </div>
+    <form class="panel light wish-form" id="wishForm" autocomplete="off">
+      <label class="wide">Something you'd like<input class="field" id="wTitle" type="text" maxlength="120" required placeholder="Matching keychains"></label>
+      <label>Price (optional)<input class="field" id="wPrice" type="text" maxlength="20" placeholder="$25"></label>
+      <label class="wide">Link (optional)<input class="field" id="wLink" type="url" maxlength="500" placeholder="https://..."></label>
+      <label>Note (optional)<input class="field" id="wNote" type="text" maxlength="200" placeholder="size M, any color"></label>
+      <label class="check"><input id="wStar" type="checkbox"> Really want this</label>
+      <span></span>
+      <button type="submit" class="p5btn red" id="wAdd">Add to my list</button>
+    </form>
+    <div class="wcols">
+      <div class="panel"><h2 class="panel-h" id="wHeadA">A's list</h2><ul class="wlist" id="wListA"></ul></div>
+      <div class="panel"><h2 class="panel-h" id="wHeadB">B's list</h2><ul class="wlist" id="wListB"></ul></div>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section class="page" id="page-setup" data-title="Setup" hidden>
+    <h1 class="pop page-h" data-pop="Confidant Setup"></h1>
+    <form class="cfg panel light" id="cfgForm">
+      <fieldset>
+        <legend>The two of you</legend>
+        <label>Your name<input class="field" id="fNameA" type="text" maxlength="24" autocomplete="off"></label>
+        <label>Their name<input class="field" id="fNameB" type="text" maxlength="24" autocomplete="off"></label>
+        <label class="full">Anniversary (day one)<input class="field" id="fStart" type="date" required></label>
+        <label>Your birthday<input class="field" id="fBdayA" type="date"></label>
+        <label>Their birthday<input class="field" id="fBdayB" type="date"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Clocks</legend>
+        <label>Label for Pacific time<input class="field" id="fLabelA" type="text" maxlength="24" placeholder="Pacific"></label>
+        <label>Label for Mountain time<input class="field" id="fLabelB" type="text" maxlength="24" placeholder="Mountain"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Your own dates</legend>
+        <label class="full">One per line, repeats every year
+          <textarea class="field" id="fCustom" placeholder="03-18 First date&#10;07-04 First trip together"></textarea>
+          <span class="hint">Format: <code>MM-DD Name</code>. A full date like <code>2024-03-18 First date</code> also works and counts the years.</span>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Shared playlist</legend>
+        <label class="full">Playlist link<input class="field" id="fPlaylist" type="url" placeholder="https://open.spotify.com/playlist/..."></label>
+        <label class="full">Songs
+          <textarea class="field" id="fTracks" placeholder="Last Surprise &mdash; Lyn | https://open.spotify.com/track/..."></textarea>
+          <span class="hint">In the Spotify desktop app, open the playlist, click a song, press Ctrl+A then Ctrl+C, and paste here. That gives links only. For titles too, export the playlist as a CSV (for example with Exportify) and load it below, or write lines as <code>Title &mdash; Artist | link</code>.</span>
+        </label>
+        <label class="full">Load a CSV export<input class="field" id="fCsv" type="file" accept=".csv,text/csv,text/plain"></label>
+      </fieldset>
+      <div class="cfg-actions">
+        <span class="where" id="cfgWhere"></span>
+        <button type="submit" class="p5btn red" id="cfgSave">Save</button>
+      </div>
+    </form>
+  </section>
+  </main>
+  </div>
+</div>
+
+<footer class="prompt" aria-label="Keyboard shortcuts">
+  <span><kbd>&larr;</kbd><kbd>&rarr;</kbd> Page</span>
+  <span><kbd>H</kbd> Home</span>
+  <span><kbd>S</kbd> Song</span>
+  <span><kbd>W</kbd> Wishlist</span>
+</footer>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const DOT = String.fromCharCode(183), EM = String.fromCharCode(8212), PLAY = String.fromCharCode(9654), STAR = String.fromCharCode(9733);
+  const DAY = 864e5;
+  const ZONES = [
+    { tz: "America/Vancouver", zone: "zA", time: "tA", sub: "sA", key: "labelA", def: "Pacific" },
+    { tz: "America/Edmonton", zone: "zB", time: "tB", sub: "sB", key: "labelB", def: "Mountain" },
+  ];
+  const DOW = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const MON = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const PAGES = ["home", "milestones", "calendar", "song", "wishlist", "setup"];
+  const BLANK = { nameA: "", nameB: "", start: "", bdayA: "", bdayB: "", labelA: "", labelB: "", custom: "", playlist: "", tracks: [] };
+  const EXAMPLE = { ...BLANK, nameA: "Joker", nameB: "Ann", start: "2025-02-14" };
+  const LS_KEY = "phantom-days-config", LS_WISH = "phantom-days-wishlist", LS_ME = "phantom-days-me";
+
+  let cfg = null;          // saved config (null = nothing saved yet)
+  let dbRef = null, wishCol = null;
+  let canWrite = true;
+  let wishes = [];         // [{id, who, title, link, note, price, star, claimed, got, created}]
+  let picks = {};          // {dayNumber: trackIndex} for days someone shuffled
+  let picksRef = null;
+  const LS_PICKS = "phantom-days-picks";
+  try { picks = JSON.parse(localStorage.getItem(LS_PICKS) || "{}") || {}; } catch (_) {}
+  let me = null;           // "A" | "B", per viewer
+  try { me = localStorage.getItem(LS_ME); } catch (_) {}
+
+  // ---------- date math on whole days (UTC day numbers, immune to DST) ----------
+  const dn = (y, m, d) => Math.round(Date.UTC(y, m - 1, d) / DAY);
+  const fromDn = (n) => { const t = new Date(n * DAY); return { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate(), w: t.getUTCDay() }; };
+  // "Today" follows Pacific time for both of you, so the day count and song match everywhere
+  const PT = new Intl.DateTimeFormat("en-US", { timeZone: "America/Vancouver", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", hourCycle: "h23", weekday: "long" });
+  const ptNow = () => { const p = Object.fromEntries(PT.formatToParts(new Date()).map((x) => [x.type, x.value])); return { y: +p.year, m: +p.month, d: +p.day, h: +p.hour % 24, dow: p.weekday }; };
+  const todayDn = () => { const p = ptNow(); return dn(p.y, p.m, p.d); };
+  const dim = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const parseYMD = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ""); return m ? { y: +m[1], m: +m[2], d: +m[3] } : null; };
+  const addMonths = (s, k) => { const mi = s.m - 1 + k; const y = s.y + Math.floor(mi / 12); const m = ((mi % 12) + 12) % 12 + 1; return dn(y, m, Math.min(s.d, dim(y, m))); };
+  const monthsBetween = (s, t) => { const T = fromDn(t); let k = (T.y - s.y) * 12 + (T.m - s.m); if (addMonths(s, k) > t) k--; return k; };
+  const pad = (n) => String(n).padStart(2, "0");
+  const md = (n) => { const d = fromDn(n); return pad(d.m) + "/" + pad(d.d); };
+  const fmt = (n) => Math.floor(n).toLocaleString("en-US");
+  const plural = (n, w) => fmt(n) + " " + w + (n === 1 ? "" : "s");
+  const inDays = (n) => n === 0 ? "Today" : n === 1 ? "Tomorrow" : "in " + fmt(n) + " days";
+  const safeUrl = (u) => { try { const x = new URL(u); return x.protocol === "https:" || x.protocol === "http:" ? x.href : ""; } catch (_) { return ""; } };
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  const view = () => {
+    const c = cfg && parseYMD(cfg.start) ? cfg : EXAMPLE;
+    return { ...BLANK, ...c, tracks: Array.isArray(c.tracks) ? c.tracks : [] };
+  };
+  const nameOf = (who, v) => (who === "A" ? v.nameA : v.nameB) || (who === "A" ? "Person A" : "Person B");
+
+  // ---------- ransom-note lettering ----------
+  function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function ransom(node, text) {
+    node.textContent = "";
+    node.setAttribute("aria-label", text);
+    const r = rng(hash(text));
+    let lastV = -1, lastF = -1;
+    for (const word of text.split(/\s+/).filter(Boolean)) {
+      const w = el("span", "word"); w.setAttribute("aria-hidden", "true");
+      for (const ch of word) {
+        let v = Math.floor(r() * 4); if (v === lastV) v = (v + 1) % 4; lastV = v;
+        let f = Math.floor(r() * 4); if (f === lastF) f = (f + 1) % 4; lastF = f;
+        const s = el("span", "rl v" + v + " f" + f, ch.toUpperCase());
+        s.style.transform = "rotate(" + ((r() - .5) * 8).toFixed(1) + "deg)";
+        s.style.fontSize = (0.9 + r() * 0.2).toFixed(2) + "em";
+        w.appendChild(s);
+      }
+      node.appendChild(w);
+    }
+  }
+  document.querySelectorAll("[data-ransom]").forEach((n) => ransom(n, n.dataset.ransom));
+  // P5 menu words: first letter of each word oversized, the rest mixed fonts with a few lowercase
+  function pop(node, text) {
+    node.textContent = "";
+    node.setAttribute("aria-label", text);
+    const r = rng(hash(text) + 7);
+    let lastF = -1;
+    for (const word of text.split(/\s+/).filter(Boolean)) {
+      const w = el("span", "word"); w.setAttribute("aria-hidden", "true");
+      [...word].forEach((ch, i) => {
+        let f = Math.floor(r() * 4); if (f === lastF) f = (f + 1) % 4; lastF = f;
+        const s = el("span", "pl f" + f, i === 0 || r() > .3 ? ch.toUpperCase() : ch.toLowerCase());
+        s.style.fontSize = (i === 0 ? 1.3 : 0.84 + r() * 0.24).toFixed(2) + "em";
+        s.style.transform = "translateY(" + ((r() - .5) * .14).toFixed(2) + "em) rotate(" + ((r() - .5) * 12).toFixed(1) + "deg)";
+        w.appendChild(s);
+      });
+      node.appendChild(w);
+    }
+  }
+  document.querySelectorAll("[data-pop]").forEach((n) => pop(n, n.dataset.pop));
+  const popEl = (cls, text) => { const s = el("span", "pop" + (cls ? " " + cls : "")); pop(s, text); return s; };
+  function popHead(node, text) {
+    if (node.dataset.popped === text) return;
+    node.dataset.popped = text; node.textContent = ""; node.appendChild(popEl("", text));
+  }
+  // section headings: swap the plain heading text for pop lettering, keep any <small> note
+  document.querySelectorAll(".panel-h").forEach((h) => {
+    const t = h.firstChild;
+    if (t && t.nodeType === 3 && t.textContent.trim()) h.replaceChild(popEl("", t.textContent.trim()), t);
+  });
+
+  // ---------- milestones ----------
+  let msCache = { key: "", map: new Map(), list: [] };
+  function milestones(s) {
+    const key = s.y + "-" + s.m + "-" + s.d;
+    if (msCache.key === key) return msCache;
+    const S = dn(s.y, s.m, s.d);
+    const list = [];
+    const add = (n, label, big, note) => list.push({ n, label, big: !!big, note: note || "" });
+    add(S, "Day one", true, "where it all started");
+    for (let k = 1; k <= 600; k++) {
+      const n = addMonths(s, k);
+      if (k % 12 === 0) add(n, plural(k / 12, "year") + " anniversary", true);
+      else if (k === 6) add(n, "Half a year", true, "6 months");
+      else if (k % 6 === 0) add(n, (k / 12) + " years", false, k + " months");
+      else add(n, plural(k, "month"), false, "monthiversary");
+    }
+    for (let d = 100; d <= 20000; d += 100) add(S + d, fmt(d) + " days", d % 1000 === 0 || d === 500, d % 1000 === 0 ? "a big one" : "");
+    for (const d of [111, 222, 333, 444, 555, 777, 888, 999, 1111, 1234, 2222, 3333, 4444, 5555]) add(S + d, fmt(d) + " days", false, "lucky number");
+    for (let w = 100; w <= 2000; w += 100) add(S + w * 7, fmt(w) + " weeks", w % 500 === 0);
+    for (const h of [10000, 25000, 50000, 100000, 250000]) add(S + Math.floor(h / 24), fmt(h) + " hours", h >= 100000);
+    for (const [m, l] of [[1e6, "1 million"], [5e6, "5 million"], [1e7, "10 million"]]) add(S + Math.floor(m / 1440), l + " minutes", m >= 1e7);
+    for (const [x, l] of [[1e8, "100 million"], [5e8, "500 million"], [1e9, "1 billion"]]) add(S + Math.floor(x / 86400), l + " seconds", x >= 1e9);
+    list.sort((a, b) => a.n - b.n || b.big - a.big);
+    const map = new Map();
+    for (const e of list) { if (!map.has(e.n)) map.set(e.n, []); map.get(e.n).push(e); }
+    msCache = { key, map, list };
+    return msCache;
+  }
+
+  // ---------- holidays & personal dates ----------
+  function secondMonday(y, m) { const first = fromDn(dn(y, m, 1)).w; return 1 + ((8 - first) % 7) + 7; }
+  function holidaysIn(y, v) {
+    const out = [
+      [1, 1, "New Year's Day"], [2, 14, "Valentine's Day"], [3, 14, "White Day"],
+      [10, secondMonday(y, 10), "Thanksgiving (Canada)"], [10, 31, "Halloween"],
+      [12, 24, "Christmas Eve"], [12, 25, "Christmas"], [12, 31, "New Year's Eve"],
+    ].map(([m, d, label]) => ({ n: dn(y, m, d), label, kind: "hol" }));
+    const bd = (s, who) => { const p = parseYMD(s); if (p && y >= p.y) out.push({ n: dn(y, p.m, Math.min(p.d, dim(y, p.m))), label: who + "'s birthday", kind: "own", note: y > p.y ? "turns " + (y - p.y) : "" }); };
+    bd(v.bdayA, v.nameA || "Your"); bd(v.bdayB, v.nameB || "Their");
+    for (const line of String(v.custom || "").split(/\r?\n/)) {
+      const m = /^\s*(?:(\d{4})-)?(\d{1,2})-(\d{1,2})\s+(.+?)\s*$/.exec(line);
+      if (!m) continue;
+      const mo = +m[2], da = +m[3];
+      if (mo < 1 || mo > 12 || da < 1 || da > 31) continue;
+      const note = m[1] && y > +m[1] ? plural(y - +m[1], "year") + " since" : "";
+      out.push({ n: dn(y, mo, Math.min(da, dim(y, mo))), label: m[4], kind: "own", note });
+    }
+    return out;
+  }
+  function holidayMap(y0, y1, v) { const map = new Map(); for (let y = y0; y <= y1; y++) for (const h of holidaysIn(y, v)) { if (!map.has(h.n)) map.set(h.n, []); map.get(h.n).push(h); } return map; }
+  function upcomingHolidays(v, T, count) {
+    const y = fromDn(T).y;
+    return [...holidaysIn(y, v), ...holidaysIn(y + 1, v)].filter((h) => h.n >= T).sort((a, b) => a.n - b.n).slice(0, count);
+  }
+
+  // ---------- render: home ----------
+  function renderStats(v, T) {
+    const s = parseYMD(v.start); const S = dn(s.y, s.m, s.d);
+    const days = T - S;
+    const months = Math.max(0, monthsBetween(s, T));
+    const afterMonths = days < 0 ? 0 : T - addMonths(s, months);
+    const years = Math.floor(months / 12);
+    $("sinceTxt").textContent = s.y + "/" + pad(s.m) + "/" + pad(s.d);
+    const names = [v.nameA, v.nameB].filter(Boolean).join(" & ") || "Us Two";
+    if ($("namesTitle").getAttribute("aria-label") !== names) ransom($("namesTitle"), names);
+    $("dayNum").textContent = fmt(Math.max(days, 0) + (days >= 0 ? 1 : 0));
+    const side = $("bcSide"); side.textContent = "";
+    if (days < 0) { side.append("Starts"); side.append(el("span", "", inDays(-days))); }
+    else { side.append("together"); const th = icon("g-heart"); th.classList.add("bc-heart"); side.append(th, el("span", "", fmt(days) + " days done")); }
+    const D = Math.max(days, 0);
+    $("vDays").textContent = fmt(D); $("sDays").textContent = "full days since day one";
+    $("vWeeks").textContent = fmt(Math.floor(D / 7)); $("sWeeks").textContent = "+ " + plural(D % 7, "day");
+    $("vMonths").textContent = fmt(months); $("sMonths").textContent = "+ " + plural(afterMonths, "day");
+    $("vYears").textContent = fmt(years); $("sYears").textContent = "+ " + plural(months % 12, "month") + ", " + plural(afterMonths, "day");
+  }
+  function renderTicker(v) {
+    const s = parseYMD(v.start);
+    const ms = Math.max(0, Date.now() - new Date(s.y, s.m - 1, s.d).getTime());
+    const t = $("ticker"); t.textContent = "";
+    for (const [n, w] of [[ms / 36e5, "hours"], [ms / 6e4, "minutes"], [ms / 1e3, "seconds"]]) {
+      const sp = el("span", "", fmt(n)); sp.appendChild(el("b", "", w)); t.appendChild(sp);
+    }
+  }
+  function banner(box, next, T) {
+    box.textContent = "";
+    if (!next) return;
+    const p = fromDn(next.n);
+    box.append(el("span", "dl-until", next.n === T ? "It's today:" : "Days until"));
+    const row = el("div", "dl-row");
+    row.append(popEl("dl-what", next.label), el("span", "dl-num", next.n === T ? "NOW" : fmt(next.n - T)));
+    box.append(row, el("div", "dl-bar", next.n === T ? "Take their heart. Celebrate today." : "Falls on " + DOW[p.w] + ", " + MON[p.m - 1] + " " + p.d + ", " + p.y));
+  }
+  function upcomingMilestones(v, T) { return milestones(parseYMD(v.start)).list.filter((e) => e.n >= T && e.label !== "Day one"); }
+
+  // ---------- render: lists ----------
+  function evRow(n, T, label, note, tag, big) {
+    const li = el("li", "ev" + (big ? " big" : "") + (n === T ? " today" : ""));
+    const y = fromDn(n);
+    const d = el("div", "ev-date", pad(y.m) + "/" + pad(y.d));
+    d.appendChild(el("small", "", DOW[y.w].slice(0, 3).toUpperCase() + " " + y.y));
+    const nm = el("div", "ev-name");
+    if (tag) nm.appendChild(el("span", "tag" + (tag.cls ? " " + tag.cls : ""), tag.text));
+    if (tag && tag.text === "OURS") { const hi = icon("g-heart"); hi.classList.add("ev-heart"); nm.appendChild(hi); }
+    nm.append(label);
+    if (note) nm.appendChild(el("em", "", note));
+    li.append(d, nm, el("div", "ev-in", inDays(n - T)));
+    return li;
+  }
+  const holTag = (h) => h.kind === "own" ? { text: "OURS" } : { text: "HOLIDAY", cls: "hol" };
+  function renderMilestonesPage(v, T) {
+    const up = upcomingMilestones(v, T);
+    banner($("nextBanner"), up[0], T);
+    const ol = $("msList"); ol.textContent = "";
+    for (const e of up.slice(1, 11)) ol.appendChild(evRow(e.n, T, e.label, e.note, e.big ? { text: "BIG" } : null, e.big));
+    const hl = $("holList"); hl.textContent = "";
+    for (const h of upcomingHolidays(v, T, 10)) hl.appendChild(evRow(h.n, T, h.label, h.note, holTag(h), h.kind === "own"));
+  }
+  function renderHome(v, T) {
+    renderStats(v, T); renderTicker(v);
+    banner($("homeBanner"), upcomingMilestones(v, T)[0], T);
+    const ol = $("homeHol"); ol.textContent = "";
+    for (const h of upcomingHolidays(v, T, 4)) ol.appendChild(evRow(h.n, T, h.label, h.note, holTag(h), h.kind === "own"));
+    renderSongCard($("homeSong"), v, T, true);
+    renderWeek(v, T); renderHubWish(v); renderCalling(v, T); renderFortune(T); renderMeter(v, T);
+  }
+
+  // ---------- daily fortune: one Major Arcana love reading + one quote per day ----------
+  const TAROT = [
+    ["0", "Le Mat", "The Fool", "Igor", "A fresh start. Say yes to something spontaneous together today, even something small.", "Look before you leap. A little planning makes the next adventure better for both of you."],
+    ["I", "Le Bateleur", "The Magician", "Morgana", "You have everything you need to make today special. Turn an ordinary moment into a date.", "Say what you mean. A clear, kind word beats a clever one today."],
+    ["II", "La Papesse", "The High Priestess", "Makoto Niijima", "Trust your gut about what they need. A quiet check-in will land well.", "Something has been left unsaid. Ask a gentle question and really listen."],
+    ["III", "L'Imperatrice", "The Empress", "Haru Okumura", "Warmth and comfort. Cook, cuddle, or take care of each other today.", "Pour some care back into yourself too. A full cup is easier to share."],
+    ["IV", "L'Empereur", "The Emperor", "Yusuke Kitagawa", "Steady and dependable. Making a plan together will feel good.", "Loosen your grip on the schedule. Leave room for a surprise."],
+    ["V", "Le Pape", "The Hierophant", "Sojiro Sakura", "Traditions matter. Revisit a ritual that's yours, or start a new one.", "Do it your own way. Your relationship doesn't have to follow anyone's rules."],
+    ["VI", "L'Amoureux", "The Lovers", "Ann Takamaki", "The love card itself. Deep connection, and choosing each other again.", "Small mismatches are normal. Talk them through and meet in the middle."],
+    ["VII", "Le Chariot", "The Chariot", "Ryuji Sakamoto", "Momentum. Push toward a shared goal: a trip, a plan, a dream.", "Slow down and steer together instead of pulling in two directions."],
+    ["VIII", "La Justice", "Justice", "Goro Akechi", "Fairness and balance. Share the load and it gets lighter.", "Stop keeping score. Kindness doesn't need to come out even."],
+    ["IX", "L'Hermite", "The Hermit", "Futaba Sakura", "A cozy, low-key day. Quiet time together still counts as quality time.", "Don't drift into separate worlds for too long. Send a message just because."],
+    ["X", "La Roue de Fortune", "Wheel of Fortune", "Chihaya Mifune", "Luck is on your side. Something good is coming around.", "An off day is just a day. The wheel keeps turning, and you have each other."],
+    ["XI", "La Force", "Strength", "Caroline & Justine", "Gentle strength. Patience and softness win today.", "Go easy on yourselves. Nobody has to be strong alone."],
+    ["XII", "Le Pendu", "The Hanged Man", "Munehisa Iwai", "A new angle. Try seeing things from their side today.", "Stop waiting for the perfect moment. Say the sweet thing now."],
+    ["XIII", "La Mort", "Death", "Tae Takemi", "Not scary, just change. Let an old habit go and make room for something better.", "Change can be slow. Hold steady through it together."],
+    ["XIV", "Temperance", "Temperance", "Sadayo Kawakami", "Balance and harmony. Meet in the middle and everything flows.", "Too much of one thing lately? Shake up the routine."],
+    ["XV", "Le Diable", "The Devil", "Ichiko Ohya", "Playful temptation. Indulge a little together: dessert, a late night, a silly splurge.", "Break a habit that isn't helping you two."],
+    ["XVI", "La Maison Dieu", "The Tower", "Shinya Oda", "Something shakes up the plan. Laugh it off together; it'll make a great story.", "Dodging a small storm only makes it bigger. Clear the air kindly."],
+    ["XVII", "L'Etoile", "The Star", "Hifumi Togo", "Hope and healing. Dream out loud about your future together.", "Feeling a little dim? Remind each other what you love about the two of you."],
+    ["XVIII", "La Lune", "The Moon", "Yuuki Mishima", "Feelings run deep tonight. Be gentle and reassuring.", "A misunderstanding clears up as soon as you talk it out."],
+    ["XIX", "Le Soleil", "The Sun", "Toranosuke Yoshida", "Pure joy. A bright, easy day. Go outside and laugh a lot.", "The sun is behind a cloud, not gone. Small joys count today."],
+    ["XX", "Le Jugement", "Judgement", "Sae Niijima", "Reflection. Look back at how far you've come since day one.", "Be kind to yourselves. Growing together isn't a test you can fail."],
+    ["XXI", "Le Monde", "The World", "", "Completion and celebration. Something you built together is whole.", "Almost there. One more step finishes what you started."],
+  ];
+  const TAROT_GLYPH = { 0: "g-mask", 6: "g-heart", 16: "g-bolt", 17: "g-star", 19: "g-star" };
+  const QUOTES = [
+    ["Whatever our souls are made of, his and mine are the same.", "Emily Bronte, Wuthering Heights"],
+    ["My bounty is as boundless as the sea, my love as deep; the more I give to thee, the more I have, for both are infinite.", "Shakespeare, Romeo and Juliet"],
+    ["Doubt thou the stars are fire; doubt that the sun doth move; doubt truth to be a liar; but never doubt I love.", "Shakespeare, Hamlet"],
+    ["Love looks not with the eyes, but with the mind.", "Shakespeare, A Midsummer Night's Dream"],
+    ["The course of true love never did run smooth.", "Shakespeare, A Midsummer Night's Dream"],
+    ["Shall I compare thee to a summer's day? Thou art more lovely and more temperate.", "Shakespeare, Sonnet 18"],
+    ["Love alters not with his brief hours and weeks, but bears it out even to the edge of doom.", "Shakespeare, Sonnet 116"],
+    ["How do I love thee? Let me count the ways.", "Elizabeth Barrett Browning, Sonnet 43"],
+    ["I love thee to the depth and breadth and height my soul can reach.", "Elizabeth Barrett Browning, Sonnet 43"],
+    ["If I loved you less, I might be able to talk about it more.", "Jane Austen, Emma"],
+    ["There is no charm equal to tenderness of heart.", "Jane Austen, Emma"],
+    ["You pierce my soul. I am half agony, half hope.", "Jane Austen, Persuasion"],
+    ["You must allow me to tell you how ardently I admire and love you.", "Jane Austen, Pride and Prejudice"],
+    ["I have for the first time found what I can truly love. I have found you.", "Charlotte Bronte, Jane Eyre"],
+    ["We loved with a love that was more than love.", "Edgar Allan Poe, Annabel Lee"],
+    ["Grow old along with me! The best is yet to be.", "Robert Browning, Rabbi Ben Ezra"],
+    ["She walks in beauty, like the night of cloudless climes and starry skies.", "Lord Byron, She Walks in Beauty"],
+    ["Nothing in the world is single; all things by a law divine in one spirit meet and mingle. Why not I with thine?", "Percy Bysshe Shelley, Love's Philosophy"],
+    ["Who, being loved, is poor?", "Oscar Wilde, A Woman of No Importance"],
+    ["To love or have loved, that is enough. Ask nothing further.", "Victor Hugo, Les Miserables"],
+    ["Love is composed of a single soul inhabiting two bodies.", "Attributed to Aristotle"],
+    ["I am my beloved's, and my beloved is mine.", "Song of Songs 6:3"],
+    ["Love is patient, love is kind.", "1 Corinthians 13:4"],
+    ["Come live with me and be my love, and we will all the pleasures prove.", "Christopher Marlowe, The Passionate Shepherd to His Love"],
+    ["I cannot exist without you. I am forgetful of every thing but seeing you again.", "John Keats, letter to Fanny Brawne"],
+  ];
+  const LS_DRAWN = "phantom-days-drawn";
+  function cardFace(i, rev) {
+    const c = TAROT[i];
+    const back = el("span", "tface tback");
+    back.append(icon("g-star"), el("span", "tb-cap", "TAP TO DRAW"));
+    const front = el("span", "tface tfront" + (rev ? " rev" : ""));
+    const body = el("span", "tf-body");
+    body.append(el("span", "tf-num", c[0]), icon(TAROT_GLYPH[i] || ["g-star", "g-heart", "g-mask", "g-bolt"][i % 4]), el("span", "tf-fr", c[1].toUpperCase()));
+    front.appendChild(body);
+    const inner = el("span", "tarot-inner"); inner.append(back, front);
+    return inner;
+  }
+  function renderFortune(T) {
+    const i = hash("tarot" + T) % TAROT.length, rev = hash("rev" + T) % 4 === 0, c = TAROT[i];
+    let drawn = false;
+    try { drawn = localStorage.getItem(LS_DRAWN) === String(T); } catch (_) {}
+    const card = $("tarotCard");
+    if (card.dataset.day !== String(T)) { card.textContent = ""; card.appendChild(cardFace(i, rev)); card.dataset.day = String(T); }
+    card.classList.toggle("flipped", drawn);
+    card.setAttribute("aria-label", drawn ? "Today's card: " + c[2] + (rev ? ", reversed" : "") : "Draw today's card");
+    $("rdKicker").textContent = drawn ? "Today's love reading" : "Shuffle time";
+    pop($("rdName"), drawn ? c[2] : "Draw a Card");
+    $("rdFlag").hidden = !(drawn && rev);
+    $("rdText").textContent = drawn ? (rev ? c[5] : c[4]) : "Tap the card to draw today's love reading. One card a day, just for fun.";
+    $("rdP5").textContent = drawn ? c[1] + (c[3] ? " " + DOT + " in P5 this is " + c[3] + "'s arcana" : " " + DOT + " the arcana of the journey's end") : "";
+    const q = QUOTES[hash("quote" + T) % QUOTES.length];
+    $("quoteText").textContent = q[0]; $("quoteBy").textContent = q[1];
+  }
+  $("tarotCard").addEventListener("click", () => {
+    const T = todayDn();
+    const wasDrawn = $("tarotCard").classList.contains("flipped");
+    try { localStorage.setItem(LS_DRAWN, String(T)); } catch (_) {}
+    renderFortune(T);
+    if (!wasDrawn) { const r = $("tarotCard").getBoundingClientRect(); setTimeout(() => spawnHearts(r.left + r.width / 2, r.top + r.height / 2, 12), 350); }
+    if (!$("tarotCard").classList.contains("flipped")) { $("tarotCard").classList.add("flipped"); }
+  });
+
+  // ---------- home hub pieces ----------
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function icon(id, fill) {
+    const s = document.createElementNS(SVGNS, "svg"); s.setAttribute("viewBox", "0 0 100 100"); s.setAttribute("aria-hidden", "true");
+    if (fill) s.style.fill = fill;
+    const u = document.createElementNS(SVGNS, "use"); u.setAttribute("href", "#" + id); s.appendChild(u); return s;
+  }
+  function burstPoints(n, r1, r2) {
+    const pts = [];
+    for (let i = 0; i < n * 2; i++) { const a = Math.PI * i / n; const r = i % 2 ? r2 : r1; pts.push((50 + r * Math.cos(a)).toFixed(1) + "," + (50 + r * Math.sin(a)).toFixed(1)); }
+    return pts.join(" ");
+  }
+  $("burst1").setAttribute("points", burstPoints(16, 49, 33));
+  $("burst2").setAttribute("points", burstPoints(12, 49, 30));
+  $("hbPoly").setAttribute("points", burstPoints(12, 48, 36));
+  // comic heart burst from a point (tap the day count, draw a card)
+  function spawnHearts(x, y, count) {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const fills = ["var(--magenta)", "var(--red)", "var(--white)", "var(--yellow)"];
+    for (let i = 0; i < count; i++) {
+      const h = icon("g-heart", fills[i % fills.length]); h.classList.add("fly");
+      h.style.left = (x - 18) + "px"; h.style.top = (y - 18) + "px";
+      document.body.appendChild(h);
+      const a = Math.random() * Math.PI * 2, d = 90 + Math.random() * 130;
+      const end = "translate(" + (Math.cos(a) * d).toFixed(0) + "px," + (Math.sin(a) * d - 70).toFixed(0) + "px) scale(" + (0.8 + Math.random() * 0.9).toFixed(2) + ") rotate(" + ((Math.random() - .5) * 100).toFixed(0) + "deg)";
+      const anim = h.animate([{ transform: "translate(0,0) scale(.3)", opacity: 1 }, { opacity: 1, offset: .7 }, { transform: end, opacity: 0 }], { duration: 900 + Math.random() * 500, easing: "cubic-bezier(.2,.8,.3,1)" });
+      anim.onfinish = () => h.remove();
+    }
+  }
+  $("dayNum").addEventListener("click", (e) => spawnHearts(e.clientX, e.clientY, 14));
+  function renderMeter(v, T) {
+    const s = parseYMD(v.start); const list = milestones(s).list;
+    const next = list.find((e) => e.n >= T && e.label !== "Day one");
+    let prev = null; for (const e of list) { if (e.n < (next ? next.n : T) && e.n <= T) prev = e; }
+    const box = $("hMeter"); box.textContent = "";
+    if (!next || !prev) { $("hMeterCap").textContent = ""; return; }
+    const frac = next.n === T ? 1 : Math.max(0, Math.min(1, (T - prev.n) / (next.n - prev.n)));
+    const filled = Math.round(frac * 10);
+    for (let i = 0; i < 10; i++) { const h = icon("g-heart"); if (i >= filled) h.classList.add("off"); box.appendChild(h); }
+    box.setAttribute("aria-label", Math.round(frac * 100) + "% of the way to " + next.label);
+    $("hMeterCap").textContent = Math.round(frac * 100) + "% of the way from " + prev.label.toLowerCase() + " to " + next.label.toLowerCase();
+  }
+  function renderWeek(v, T) {
+    const s = parseYMD(v.start);
+    const { map: ms } = milestones(s);
+    const p0 = fromDn(T);
+    const hm = holidayMap(p0.y, p0.y + 1, v);
+    const box = $("weekStrip"); box.textContent = "";
+    for (let n = T - 1; n <= T + 5; n++) {
+      const p = fromDn(n);
+      const b = el("button", "wk" + (n < T ? " past" : "") + (n === T ? " now" : "") + (p.w === 0 ? " sun" : p.w === 6 ? " sat" : ""));
+      b.type = "button";
+      const evs = [...(ms.get(n) || []).map((e) => e.label), ...(hm.get(n) || []).map((h) => h.label)];
+      b.setAttribute("aria-label", DOW[p.w] + " " + MON[p.m - 1] + " " + p.d + (evs.length ? ": " + evs.join(", ") : ""));
+      if (evs.length) b.title = evs.join(", ");
+      const wi = el("span", "wi");
+      if (ms.has(n)) wi.appendChild(icon("g-star", (ms.get(n).some((e) => e.big) ? "var(--yellow)" : "var(--white)")));
+      if (hm.has(n)) wi.appendChild(icon("g-heart", "var(--magenta)"));
+      b.append(el("span", "wd", DOW[p.w].slice(0, 3).toUpperCase()), el("span", "wn", p.d), wi);
+      b.addEventListener("click", () => { selDn = n; calY = p.y; calM = p.m; renderCalendar(view(), todayDn()); go("calendar"); });
+      box.appendChild(b);
+    }
+  }
+  function renderHubWish(v) {
+    const box = $("hubWish"); if (!box) return;
+    box.textContent = "";
+    const open = wishes.filter((w) => !w.got);
+    if (!wishes.length) { box.append(el("p", "wsum-want", "No wishes yet. Add the first thing you'd like, and the other person will see it here.")); return; }
+    const row = el("div", "wsum-row");
+    for (const who of ["A", "B"]) {
+      const c = el("span", "wsum-who", nameOf(who, v)); c.appendChild(el("b", "", String(open.filter((w) => w.who === who).length))); row.appendChild(c);
+    }
+    box.appendChild(row);
+    const other = me === "A" ? "B" : me === "B" ? "A" : null;
+    const pool = open.filter((w) => !other || w.who === other);
+    const pick = pool.find((w) => w.star) || pool.slice().sort((a, b) => String(b.created).localeCompare(String(a.created)))[0];
+    if (pick) {
+      const p = el("p", "wsum-want");
+      p.style.margin = "0";
+      p.append(icon("g-heart"), (pick.star ? nameOf(pick.who, v) + " really wants" : "Newest on " + nameOf(pick.who, v) + "'s list"));
+      p.appendChild(el("span", "", pick.title));
+      box.appendChild(p);
+    }
+    if (other) {
+      const mine = open.filter((w) => w.who === other && w.claimed).length;
+      if (mine) box.appendChild(el("p", "wsum-want", "You're getting " + plural(mine, "thing") + " from " + nameOf(other, v) + "'s list."));
+    }
+  }
+  const CALLING = [
+    "{n} days of stealing each other's hearts. No plans to give them back.",
+    "Mission log, day {n}: target still captured. {B} remains extremely cute.",
+    "Confidant rank with {B}: MAX. Day {n} and counting.",
+    "{A} & {B}: {n} days. The Velvet Room has no record of a stronger bond.",
+    "Day {n}. Take your time. We've got plenty of it.",
+    "Notice: on day {n}, {A} will take {B}'s heart. Again.",
+    "Day {n}. Looking cool, {A}. Looking even better, {B}.",
+    "{n} days in, and this is still the best route through the game.",
+  ];
+  function renderCalling(v, T) {
+    const s = parseYMD(v.start); const n = T - dn(s.y, s.m, s.d) + 1;
+    const line = n < 1 ? "The heist starts in " + plural(1 - n, "day") + ". Get ready."
+      : CALLING[hash("call" + T) % CALLING.length].replace(/\{n\}/g, fmt(n)).replace(/\{A\}/g, v.nameA || "You").replace(/\{B\}/g, v.nameB || "them");
+    $("callingLine").textContent = line;
+  }
+
+  // ---------- render: calendar ----------
+  let calY, calM, selDn = null;
+  function renderCalendar(v, T) {
+    const s = parseYMD(v.start); const S = dn(s.y, s.m, s.d);
+    const { map: ms } = milestones(s);
+    const hm = holidayMap(calY, calY, v);
+    const title = $("calTitle"); title.textContent = MON[calM - 1]; title.appendChild(el("span", "", calY));
+    const g = $("calGrid"); g.textContent = "";
+    ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach((d, i) => g.appendChild(el("div", "cal-dow" + (i === 0 ? " sun" : ""), d.toUpperCase())));
+    const first = dn(calY, calM, 1); const lead = fromDn(first).w;
+    for (let i = 0; i < lead; i++) g.appendChild(el("div", "cal-day blank"));
+    for (let d = 1; d <= dim(calY, calM); d++) {
+      const n = first + d - 1;
+      const b = el("button", "cal-day" + (n === T ? " today" : "") + (n < S ? " before" : "") + (n === selDn ? " sel" : ""));
+      b.type = "button"; b.dataset.dn = n;
+      const mk = el("span", "m");
+      const labels = [];
+      for (const e of ms.get(n) || []) { mk.appendChild(el("i", "dot" + (e.big ? " big" : ""))); labels.push(e.label); }
+      for (const h of hm.get(n) || []) { mk.appendChild(el("i", "dot hol")); labels.push(h.label); }
+      b.setAttribute("aria-label", MON[calM - 1] + " " + d + (labels.length ? ": " + labels.join(", ") : ""));
+      b.append(el("span", "n", d), mk);
+      g.appendChild(b);
+    }
+    renderDetail(v, T);
+  }
+  function renderDetail(v, T) {
+    const n = selDn ?? T;
+    const s = parseYMD(v.start); const S = dn(s.y, s.m, s.d);
+    const { map: ms } = milestones(s);
+    const p = fromDn(n);
+    const box = $("calDetail"); box.textContent = "";
+    box.append(el("h3", "", DOW[p.w] + " " + pad(p.m) + "/" + pad(p.d) + "/" + p.y + (n === T ? " (today)" : "")));
+    box.append(el("p", "", n < S ? "Before day one. " + plural(S - n, "day") + " to go until you two start."
+      : "Day " + fmt(n - S + 1) + " together" + (n > T ? ", " + inDays(n - T) : n < T ? ", " + plural(T - n, "day") + " ago" : "") + "."));
+    const evs = [...(ms.get(n) || []).map((e) => e.label + (e.note ? " (" + e.note + ")" : "")), ...(holidayMap(p.y, p.y, v).get(n) || []).map((x) => x.label)];
+    if (evs.length) { const ul = el("ul"); for (const e of evs) ul.appendChild(el("li", "", e)); box.appendChild(ul); }
+    const song = songFor(n, v);
+    if (song) box.appendChild(el("p", "", "Song of the day: " + songTitle(song)));
+  }
+
+  // ---------- song of the day ----------
+  const TRACK_RE = /(?:https?:\/\/)?open\.spotify\.com\/(?:intl-[a-z-]+\/)?track\/([A-Za-z0-9]{22})[^\s,|]*|spotify:track:([A-Za-z0-9]{22})/;
+  function parseCsv(text) {
+    const rows = []; let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) { if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+      else if (c === '"') q = true;
+      else if (c === ",") { row.push(cell); cell = ""; }
+      else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+      else cell += c;
+    }
+    if (cell || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter((r) => r.some((x) => x.trim()));
+  }
+  function parseTracks(text) {
+    text = String(text || "").trim();
+    if (!text) return [];
+    const firstLine = text.split(/\r?\n/)[0].toLowerCase();
+    if (firstLine.includes(",") && (firstLine.includes("track name") || firstLine.includes("track uri"))) {
+      const rows = parseCsv(text); const head = rows.shift().map((h) => h.trim().toLowerCase());
+      const iU = head.findIndex((h) => (h.includes("uri") && h.includes("track")) || h === "uri" || h.includes("spotify id"));
+      const iT = head.findIndex((h) => h === "track name" || h === "name" || h.includes("track name"));
+      const iA = head.findIndex((h) => h.startsWith("artist name") || h === "artist" || h === "artists");
+      return rows.map((r) => {
+        const raw = iU >= 0 ? r[iU] || "" : "";
+        const m = TRACK_RE.exec(raw); const id = m ? (m[1] || m[2]) : (/^[A-Za-z0-9]{22}$/.test(raw.trim()) ? raw.trim() : "");
+        return { t: (iT >= 0 ? r[iT] : "").trim(), a: (iA >= 0 ? r[iA] : "").trim().replace(/\\,/g, ","), id };
+      }).filter((x) => x.id || x.t);
+    }
+    const out = [];
+    for (let line of text.split(/\r?\n/)) {
+      line = line.trim(); if (!line) continue;
+      const m = TRACK_RE.exec(line); const id = m ? (m[1] || m[2]) : "";
+      let rest = m ? line.replace(m[0], "") : line;
+      rest = rest.replace(/[\s|,]+$/, "").replace(/^[\s|,]+/, "").trim();
+      let t = rest, a = "";
+      const sep = rest.includes(" " + EM + " ") ? " " + EM + " " : rest.includes(" | ") ? " | " : rest.includes(" - ") ? " - " : "";
+      if (sep) { const i = rest.indexOf(sep); t = rest.slice(0, i).trim(); a = rest.slice(i + sep.length).trim(); }
+      if (id || t) out.push({ t, a, id });
+    }
+    return out;
+  }
+  const serializeTracks = (tr) => tr.map((x) => [x.t ? x.t + (x.a ? " " + EM + " " + x.a : "") : "", x.id ? "https://open.spotify.com/track/" + x.id : ""].filter(Boolean).join(" | ")).join("\n");
+  const trackUrl = (x) => x.id ? "https://open.spotify.com/track/" + x.id : "";
+  let permCache = { key: "", perm: [] };
+  function songFor(n, v) {
+    const tr = v.tracks; const len = tr.length; if (!len) return null;
+    const forced = picks[n];
+    if (Number.isInteger(forced) && forced >= 0 && forced < len) return { ...tr[forced], idx: forced };
+    const cycle = Math.floor(n / len), pos = ((n % len) + len) % len;
+    const key = cycle + ":" + len + ":" + (tr[0].id || tr[0].t);
+    if (permCache.key !== key) {
+      const r = rng(hash(key)); const p = [...Array(len).keys()];
+      for (let i = len - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; }
+      permCache = { key, perm: p };
+    }
+    return { ...tr[permCache.perm[pos]], idx: permCache.perm[pos] };
+  }
+  const songTitle = (x) => (x.t || "Track " + (x.idx + 1)) + (x.a ? " " + EM + " " + x.a : "");
+  function linkBtn(href, text, cls) { const a = el("a", "p5btn" + (cls ? " " + cls : ""), text); a.href = href; a.target = "_blank"; a.rel = "noopener noreferrer"; return a; }
+  async function copyText(text, fallbackNode) {
+    try { await navigator.clipboard.writeText(text); toast("Link copied. Paste it into Spotify or your browser."); }
+    catch (_) {
+      if (fallbackNode) { const r = document.createRange(); r.selectNodeContents(fallbackNode); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+      toast("Copy was blocked here. The link is selected, so press Ctrl+C.");
+    }
+  }
+  function renderSongCard(box, v, T, mini) {
+    box.textContent = "";
+    const song = songFor(T, v);
+    if (!song) {
+      const e = el("div", "empty");
+      e.append(popEl("empty-h", "No Songs Yet"), el("p", "", "Add the songs from your shared Spotify playlist on the Setup page. Each day picks one, and both of you see the same song."));
+      const btn = el("button", "p5btn", "Add our playlist"); btn.type = "button"; btn.style.justifySelf = "start"; btn.addEventListener("click", () => go("setup"));
+      e.append(btn); box.appendChild(e);
+      return;
+    }
+    const card = el("div", "song-card" + (mini ? " mini" : ""));
+    const disc = el("div", "disc"); disc.setAttribute("aria-hidden", "true");
+    const info = el("div"); info.style.minWidth = "0";
+    info.append(
+      el("div", "song-k", "Today's track " + DOT + " " + md(T)),
+      el("div", "song-t", song.t || "Mystery track #" + (song.idx + 1)),
+      el("div", "song-a", song.a || (song.t ? "" : "Title not saved yet. Open it in Spotify to hear it.")),
+    );
+    if (!mini) info.append(el("div", "song-meta", "Song " + (song.idx + 1) + " of " + v.tracks.length + " on your playlist"));
+    const acts = el("div", "song-actions");
+    const url = trackUrl(song);
+    let urlNode = null;
+    if (url) {
+      acts.appendChild(linkBtn(url, PLAY + " Open in Spotify", "red"));
+      if (!mini) {
+        urlNode = el("span", "song-url", url);
+        const cp = el("button", "p5btn light small", "Copy link"); cp.type = "button";
+        cp.addEventListener("click", () => copyText(url, urlNode));
+        acts.appendChild(cp);
+      }
+    }
+    if (v.tracks.length > 1) {
+      const sh = el("button", "p5btn small" + (mini ? " light" : ""), "Shuffle"); sh.type = "button"; sh.disabled = !canWrite;
+      sh.title = "Draw a different song for today. You'll both see the new pick.";
+      sh.addEventListener("click", () => shuffleToday(card));
+      acts.appendChild(sh);
+    }
+    if (!mini && safeUrl(v.playlist)) acts.appendChild(linkBtn(safeUrl(v.playlist), "Open playlist", "light"));
+    info.append(acts);
+    if (urlNode) info.append(urlNode);
+    card.append(disc, info);
+    box.appendChild(card);
+  }
+  // Draw a different song for today: slot-machine reel, then save the pick so both of you see it
+  let shuffling = false;
+  function shuffleToday(card) {
+    const v = view(); const T = todayDn(); const len = v.tracks.length;
+    if (len < 2 || shuffling) return;
+    shuffling = true;
+    const cur = songFor(T, v).idx;
+    let next = Math.floor(Math.random() * (len - 1)); if (next >= cur) next++;
+    const titleNode = card.querySelector(".song-t"), disc = card.querySelector(".disc");
+    if (disc) disc.classList.add("fast");
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let steps = reduce ? 0 : 14;
+    const finish = async () => {
+      picks = { ...picks, [T]: next };
+      for (const k of Object.keys(picks)) if (+k < T - 30) delete picks[k];
+      try {
+        if (picksRef) await picksRef.set({ picks });
+        else { try { localStorage.setItem(LS_PICKS, JSON.stringify(picks)); } catch (_) {} }
+        toast("New song for today: " + songTitle(songFor(T, v)));
+      } catch (err) {
+        if (err && err.code === "invalid_argument") canWrite = false;
+        toast(canWrite ? "Couldn't save the new pick. Try again in a moment." : "This page is view-only for you.");
+      }
+      shuffling = false;
+      renderAll();
+    };
+    const spin = () => {
+      if (steps-- <= 0) { finish(); return; }
+      const x = v.tracks[Math.floor(Math.random() * len)];
+      if (titleNode) titleNode.textContent = x.t || "Track " + (v.tracks.indexOf(x) + 1);
+      setTimeout(spin, 60 + (14 - steps) * 6);
+    };
+    spin();
+  }
+  function renderSongPage(v, T) {
+    $("songSub").textContent = v.tracks.length ? "Picked from " + plural(v.tracks.length, "song") + ". Every song plays once before any repeats. Shuffle draws a new one for today, and you both see it." : "From your shared playlist.";
+    renderSongCard($("songBody"), v, T, false);
+    const hist = $("songHist"); hist.textContent = "";
+    $("songHistPanel").hidden = v.tracks.length < 2;
+    for (let i = 1; i <= 6 && v.tracks.length > 1; i++) {
+      const x = songFor(T - i, v);
+      const r = el("div", "sh-row");
+      r.append(el("span", "d", md(T - i)), el("span", "t", songTitle(x)));
+      if (x.id) { const l = el("a", "", "OPEN"); l.href = trackUrl(x); l.target = "_blank"; l.rel = "noopener noreferrer"; r.appendChild(l); } else r.appendChild(el("span"));
+      hist.appendChild(r);
+    }
+  }
+
+  // ---------- wishlist ----------
+  function renderWishlist(v) {
+    $("meA").textContent = nameOf("A", v); $("meB").textContent = nameOf("B", v);
+    $("meA").setAttribute("aria-pressed", String(me === "A")); $("meB").setAttribute("aria-pressed", String(me === "B"));
+    popHead($("wHeadA"), nameOf("A", v) + "'s List"); popHead($("wHeadB"), nameOf("B", v) + "'s List");
+    $("wAdd").disabled = !me || !canWrite;
+    $("wAdd").textContent = me ? "Add to " + nameOf(me, v) + "'s list" : "Pick who you are first";
+    $("wishSub").textContent = (wishCol ? "Shared live between you two. " : "Saved in this browser only. ") +
+      "Mark the other person's ideas when you plan to get them; they won't see it.";
+    for (const who of ["A", "B"]) {
+      const ul = $("wList" + who); ul.textContent = "";
+      const items = wishes.filter((w) => w.who === who).sort((a, b) => (a.got - b.got) || (b.star - a.star) || String(b.created).localeCompare(String(a.created)));
+      if (!items.length) { ul.appendChild(el("li", "wempty", who === me ? "Nothing yet. Add something above." : "Nothing here yet.")); continue; }
+      const mine = who === me;
+      for (const w of items) {
+        const li = el("li", "witem" + (w.got ? " got" : ""));
+        const head = el("div", "wt");
+        if (w.star) { const hs = icon("g-heart"); hs.classList.add("star"); head.appendChild(hs); }
+        const href = safeUrl(w.link);
+        if (href) { const a = el("a", "", w.title); a.href = href; a.target = "_blank"; a.rel = "noopener noreferrer"; head.appendChild(a); } else head.append(w.title);
+        const left = el("div"); left.appendChild(head);
+        if (w.note) left.appendChild(el("div", "wn", w.note));
+        li.append(left, el("div", "wp", w.price || ""));
+        const acts = el("div", "wa");
+        if (mine) {
+          acts.appendChild(actBtn(w.got ? "Not received" : "Got it", () => saveWish(w.id, { got: !w.got })));
+          acts.appendChild(actBtn("Remove", () => removeWish(w.id)));
+        } else if (me) {
+          if (w.claimed) acts.appendChild(el("span", "claimed", "You're getting this"));
+          acts.appendChild(actBtn(w.claimed ? "Unmark" : "I'll get this", () => saveWish(w.id, { claimed: !w.claimed })));
+        }
+        if (acts.childNodes.length) li.appendChild(acts);
+        ul.appendChild(li);
+      }
+    }
+    renderHubWish(v);
+  }
+  function actBtn(text, fn) { const b = el("button", "p5btn small" + (text === "Remove" ? " light" : ""), text); b.type = "button"; b.disabled = !canWrite; b.addEventListener("click", fn); return b; }
+  function persistLocalWishes() { try { localStorage.setItem(LS_WISH, JSON.stringify(wishes)); } catch (_) {} }
+  async function writeGuard(fn) {
+    try { await fn(); }
+    catch (err) {
+      if (err && err.code === "invalid_argument") { canWrite = false; toast("This page is view-only for you. Ask the owner to share it with you as an Editor."); }
+      else if (err && err.code === "quota_exceeded") toast("The wishlist is full. Remove a few items first.");
+      else toast("Couldn't save right now. Try again in a moment.");
+      renderWishlist(view());
+    }
+  }
+  function saveWish(id, patch) {
+    if (!wishCol) { wishes = wishes.map((w) => w.id === id ? { ...w, ...patch } : w); persistLocalWishes(); renderWishlist(view()); return; }
+    writeGuard(() => wishCol.doc(id).update(patch));
+  }
+  function removeWish(id) {
+    if (!wishCol) { wishes = wishes.filter((w) => w.id !== id); persistLocalWishes(); renderWishlist(view()); return; }
+    writeGuard(() => wishCol.doc(id).delete());
+  }
+  function setMe(who) { me = who; try { localStorage.setItem(LS_ME, who); } catch (_) {} renderWishlist(view()); }
+  $("meA").addEventListener("click", () => setMe("A"));
+  $("meB").addEventListener("click", () => setMe("B"));
+  $("wishForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!me) { toast("Pick who you are first."); return; }
+    const item = {
+      who: me, title: $("wTitle").value.trim(), link: safeUrl($("wLink").value.trim()), note: $("wNote").value.trim(),
+      price: $("wPrice").value.trim(), star: $("wStar").checked, claimed: false, got: false, created: new Date().toISOString(),
+    };
+    if (!item.title) return;
+    const done = () => { $("wishForm").reset(); toast("Added to " + nameOf(me, view()) + "'s list."); };
+    if (!wishCol) { wishes.push({ ...item, id: "w" + Date.now().toString(36) }); persistLocalWishes(); renderWishlist(view()); done(); return; }
+    writeGuard(async () => { await wishCol.add(item); done(); });
+  });
+
+  // ---------- clocks & date bug ----------
+  const zoneFmt = ZONES.map((z) => new Intl.DateTimeFormat("en-US", { timeZone: z.tz, hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true, timeZoneName: "short", weekday: "short", month: "2-digit", day: "2-digit" }));
+  function phase(h) { return h < 5 ? "Late Night" : h < 8 ? "Early Morning" : h < 12 ? "Morning" : h < 13 ? "Lunchtime" : h < 15 ? "Afternoon" : h < 18 ? "After School" : h < 23 ? "Evening" : "Late Night"; }
+  function renderClocks(v) {
+    const now = new Date();
+    ZONES.forEach((z, i) => {
+      const parts = Object.fromEntries(zoneFmt[i].formatToParts(now).map((p) => [p.type, p.value]));
+      $(z.zone).textContent = parts.timeZoneName;
+      const t = $(z.time); t.textContent = parts.hour + ":" + parts.minute + ":" + parts.second;
+      t.appendChild(el("small", "", parts.dayPeriod));
+      $(z.sub).textContent = (v[z.key] || z.def) + " " + DOT + " " + parts.weekday + " " + parts.month + "/" + parts.day;
+    });
+    const p = ptNow();
+    $("bugMD").textContent = pad(p.m) + "/" + pad(p.d);
+    $("bugDow").textContent = p.dow;
+    $("bugPhase").textContent = phase(p.h);
+  }
+
+  // ---------- pages ----------
+  let page = "home";
+  function go(next, animate = true) {
+    if (!PAGES.includes(next)) next = "home";
+    const changed = next !== page;
+    page = next;
+    for (const p of PAGES) $("page-" + p).hidden = p !== page;
+    document.querySelectorAll(".menu button").forEach((b) => { if (b.dataset.page === page) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+    if (page === "setup") fillSetup();
+    if (changed && animate && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const w = $("wipe"); w.classList.remove("go"); void w.offsetWidth; w.classList.add("go");
+    }
+    if (changed) window.scrollTo({ top: 0 });
+    if (location.hash.slice(1) !== page) { try { history.replaceState(null, "", "#" + page); } catch (_) {} }
+  }
+  document.querySelectorAll("[data-page]").forEach((b) => b.addEventListener("click", () => go(b.dataset.page)));
+  window.addEventListener("hashchange", () => go(location.hash.slice(1)));
+
+  // ---------- main render & clock loop ----------
+  let lastT = null;
+  function renderAll() {
+    const v = view(); const T = todayDn();
+    $("exampleNote").hidden = !!(cfg && parseYMD(cfg.start));
+    renderHome(v, T); renderMilestonesPage(v, T); renderCalendar(v, T); renderSongPage(v, T); renderWishlist(v); renderClocks(v);
+    lastT = T;
+  }
+  function tick() {
+    const v = view(); const T = todayDn();
+    if (T !== lastT) { if (calY === fromDn(lastT).y && calM === fromDn(lastT).m) { calY = fromDn(T).y; calM = fromDn(T).m; } renderAll(); }
+    else { renderClocks(v); renderTicker(v); }
+  }
+
+  // ---------- calendar interactions ----------
+  function shiftMonth(k) { const m = calM - 1 + k; calY += Math.floor(m / 12); calM = ((m % 12) + 12) % 12 + 1; renderCalendar(view(), todayDn()); }
+  function goToday() { const t = fromDn(todayDn()); calY = t.y; calM = t.m; selDn = null; }
+  $("calPrev").addEventListener("click", () => shiftMonth(-1));
+  $("calNext").addEventListener("click", () => shiftMonth(1));
+  $("calToday").addEventListener("click", () => { goToday(); renderCalendar(view(), todayDn()); });
+  $("calGrid").addEventListener("click", (e) => {
+    const b = e.target.closest(".cal-day"); if (!b || !b.dataset.dn) return;
+    selDn = +b.dataset.dn;
+    $("calGrid").querySelectorAll(".sel").forEach((x) => x.classList.remove("sel")); b.classList.add("sel");
+    renderDetail(view(), todayDn());
+  });
+
+  // ---------- setup form ----------
+  const FIELDS = { fNameA: "nameA", fNameB: "nameB", fStart: "start", fBdayA: "bdayA", fBdayB: "bdayB", fLabelA: "labelA", fLabelB: "labelB", fCustom: "custom", fPlaylist: "playlist" };
+  let setupDirty = false;
+  function fillSetup() {
+    if (setupDirty) return;
+    const c = { ...BLANK, ...(cfg || {}) };
+    for (const [id, k] of Object.entries(FIELDS)) $(id).value = c[k] || "";
+    $("fTracks").value = serializeTracks(Array.isArray(c.tracks) ? c.tracks : []);
+    $("fCsv").value = "";
+    $("cfgWhere").textContent = dbRef ? (canWrite ? "Saves for both of you." : "You can view this tracker, but only its owner and editors can change it.") : "Saved in this browser only.";
+    $("cfgSave").disabled = !!dbRef && !canWrite;
+  }
+  $("cfgForm").addEventListener("input", () => { setupDirty = true; });
+  $("fCsv").addEventListener("change", (e) => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => { const tr = parseTracks(String(rd.result)); if (!tr.length) { toast("No songs found in that file."); return; } $("fTracks").value = serializeTracks(tr); setupDirty = true; toast("Loaded " + plural(tr.length, "song") + ". Press Save to keep them."); };
+    rd.readAsText(f);
+  });
+  $("cfgForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const next = {};
+    for (const [id, k] of Object.entries(FIELDS)) next[k] = $(id).value.trim();
+    if (!parseYMD(next.start)) { toast("Pick your anniversary date first."); $("fStart").focus(); return; }
+    next.tracks = parseTracks($("fTracks").value).slice(0, 3000);
+    next.updatedAt = new Date().toISOString();
+    $("cfgSave").disabled = true;
+    try {
+      if (dbRef) await dbRef.set(next);
+      else { try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch (_) {} }
+      cfg = next; setupDirty = false; goToday(); renderAll(); go("home");
+      toast("Saved. " + (next.tracks.length ? plural(next.tracks.length, "song") + " in the rotation." : "Add songs any time."));
+    } catch (err) {
+      if (err && err.code === "invalid_argument") { canWrite = false; toast("This page is view-only for you. Ask the owner to share it with you as an Editor."); }
+      else if (err && err.code === "quota_exceeded") toast("That playlist is too big to save. Try fewer songs.");
+      else toast("Couldn't save right now. Try again in a moment.");
+    } finally { $("cfgSave").disabled = !!dbRef && !canWrite; }
+  });
+
+  let toastTimer = 0;
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3800); }
+
+  // ---------- keyboard ----------
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest("input, textarea, select") || e.metaKey || e.ctrlKey || e.altKey) return;
+    const i = PAGES.indexOf(page);
+    if (e.key === "ArrowLeft") go(PAGES[(i + PAGES.length - 1) % PAGES.length]);
+    else if (e.key === "ArrowRight") go(PAGES[(i + 1) % PAGES.length]);
+    else if ("hHtT".includes(e.key)) go("home");
+    else if (e.key === "s" || e.key === "S") go("song");
+    else if (e.key === "w" || e.key === "W") go("wishlist");
+  });
+
+  // ---------- boot ----------
+  try { const raw = localStorage.getItem(LS_KEY); if (raw) cfg = JSON.parse(raw); } catch (_) {}
+  try { const raw = localStorage.getItem(LS_WISH); if (raw) wishes = JSON.parse(raw) || []; } catch (_) {}
+  goToday();
+  renderAll();
+  go(location.hash.slice(1) || "home", false);
+  setInterval(tick, 1000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+
+  (async () => {
+    if (!window.claude || typeof window.claude.use !== "function") return;
+    const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+    if (!db) return;
+    if (user) { const w = await user.can("data.write"); if (w === false) canWrite = false; }
+    dbRef = db.doc("shared/config");
+    wishCol = db.collection("wishlist");
+    picksRef = db.doc("shared/picks");
+    wishes = []; picks = {};
+    picksRef.onSnapshot((snap) => {
+      const p = snap.exists ? snap.data().picks : null;
+      picks = p && typeof p === "object" ? p : {};
+      if (!shuffling) renderAll();
+    }, () => {});
+    renderWishlist(view());
+    dbRef.onSnapshot((snap) => {
+      if (snap.exists) { cfg = snap.data(); renderAll(); if (page === "setup") fillSetup(); }
+      else if (cfg && parseYMD(cfg.start) && canWrite) dbRef.set({ ...cfg }).catch(() => {});
+    }, () => {});
+    wishCol.onSnapshot((snap) => {
+      wishes = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+      renderWishlist(view());
+    }, () => {});
+  })();
+})();
+</script>
+
+</body></html>
