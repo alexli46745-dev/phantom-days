@@ -1,5 +1,9 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}img{max-width:100%}</style></head><body>
-<title>Phantom Days</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}img{max-width:100%}</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+</head><body><title>Phantom Days</title>
 <meta charset="utf-8">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -544,6 +548,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   </nav>
   <main class="main">
 
+  <div class="note" id="syncBar" hidden>
+    <span>Sign in with Google to sync with your partner. Until then, changes stay on this device.</span>
+    <button type="button" class="p5btn red" id="signInBtn">Sign in with Google</button>
+  </div>
   <div class="note" id="exampleNote" hidden>
     <span>These are example dates and names. Set your own anniversary to start the count.</span>
     <button type="button" class="p5btn" data-page="setup">Set our date</button>
@@ -733,6 +741,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       </fieldset>
       <div class="cfg-actions">
         <span class="where" id="cfgWhere"></span>
+        <button type="button" class="p5btn light" id="signOutBtn" hidden>Sign out</button>
         <button type="submit" class="p5btn red" id="cfgSave">Save</button>
       </div>
     </form>
@@ -773,6 +782,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   let wishes = [];         // [{id, who, title, link, note, price, star, claimed, got, created}]
   let picks = {};          // {dayNumber: trackIndex} for days someone shuffled
   let picksRef = null;
+  let fbUser = null;       // Firebase account when running on GitHub Pages
   const LS_PICKS = "phantom-days-picks";
   try { picks = JSON.parse(localStorage.getItem(LS_PICKS) || "{}") || {}; } catch (_) {}
   let me = null;           // "A" | "B", per viewer
@@ -1347,7 +1357,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
         else { try { localStorage.setItem(LS_PICKS, JSON.stringify(picks)); } catch (_) {} }
         toast("New song for today: " + songTitle(songFor(T, v)));
       } catch (err) {
-        if (err && err.code === "invalid_argument") canWrite = false;
+        if (err && (err.code === "invalid_argument" || err.code === "permission-denied")) canWrite = false;
         toast(canWrite ? "Couldn't save the new pick. Try again in a moment." : "This page is view-only for you.");
       }
       shuffling = false;
@@ -1417,7 +1427,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   async function writeGuard(fn) {
     try { await fn(); }
     catch (err) {
-      if (err && err.code === "invalid_argument") { canWrite = false; toast("This page is view-only for you. Ask the owner to share it with you as an Editor."); }
+      if (err && (err.code === "invalid_argument" || err.code === "permission-denied")) { canWrite = false; toast("This page is view-only for you. Ask the owner to share it with you as an Editor."); }
       else if (err && err.code === "quota_exceeded") toast("The wishlist is full. Remove a few items first.");
       else toast("Couldn't save right now. Try again in a moment.");
       renderWishlist(view());
@@ -1519,7 +1529,9 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     for (const [id, k] of Object.entries(FIELDS)) $(id).value = c[k] || "";
     $("fTracks").value = serializeTracks(Array.isArray(c.tracks) ? c.tracks : []);
     $("fCsv").value = "";
-    $("cfgWhere").textContent = dbRef ? (canWrite ? "Saves for both of you." : "You can view this tracker, but only its owner and editors can change it.") : "Saved in this browser only.";
+    $("cfgWhere").textContent = (fbUser ? "Signed in as " + fbUser.email + ". " : "") +
+      (dbRef ? (canWrite ? "Saves for both of you." : "You can view this tracker, but only its owner and editors can change it.") : "Saved in this browser only.");
+    $("signOutBtn").hidden = !fbUser;
     $("cfgSave").disabled = !!dbRef && !canWrite;
   }
   $("cfgForm").addEventListener("input", () => { setupDirty = true; });
@@ -1543,7 +1555,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       cfg = next; setupDirty = false; goToday(); renderAll(); go("home");
       toast("Saved. " + (next.tracks.length ? plural(next.tracks.length, "song") + " in the rotation." : "Add songs any time."));
     } catch (err) {
-      if (err && err.code === "invalid_argument") { canWrite = false; toast("This page is view-only for you. Ask the owner to share it with you as an Editor."); }
+      if (err && (err.code === "invalid_argument" || err.code === "permission-denied")) { canWrite = false; toast("This page is view-only for you. Ask the owner to share it with you as an Editor."); }
       else if (err && err.code === "quota_exceeded") toast("That playlist is too big to save. Try fewer songs.");
       else toast("Couldn't save right now. Try again in a moment.");
     } finally { $("cfgSave").disabled = !!dbRef && !canWrite; }
@@ -1573,10 +1585,20 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
 
   (async () => {
-    if (!window.claude || typeof window.claude.use !== "function") return;
+    if (!window.claude || typeof window.claude.use !== "function") { startFirebase(); return; }
     const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
     if (!db) return;
     if (user) { const w = await user.can("data.write"); if (w === false) canWrite = false; }
+    connectStore(db);
+  })();
+
+  // ---------- shared store: claude.ai db or Firebase Firestore (same doc/collection API) ----------
+  function storeError(e) {
+    if (e && e.code === "permission-denied") toast("This account isn't allowed to open the shared tracker. Check the allowed emails in your Firebase rules.");
+  }
+  function connectStore(db) {
+    const pendingWishes = wishes.slice();
+    let wishesSynced = false;
     dbRef = db.doc("shared/config");
     wishCol = db.collection("wishlist");
     picksRef = db.doc("shared/picks");
@@ -1585,17 +1607,48 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       const p = snap.exists ? snap.data().picks : null;
       picks = p && typeof p === "object" ? p : {};
       if (!shuffling) renderAll();
-    }, () => {});
+    }, storeError);
     renderWishlist(view());
     dbRef.onSnapshot((snap) => {
       if (snap.exists) { cfg = snap.data(); renderAll(); if (page === "setup") fillSetup(); }
       else if (cfg && parseYMD(cfg.start) && canWrite) dbRef.set({ ...cfg }).catch(() => {});
-    }, () => {});
+    }, storeError);
     wishCol.onSnapshot((snap) => {
+      // first real answer from the server: move any wishes made on this device before syncing
+      if (!wishesSynced && !(snap.metadata && snap.metadata.fromCache)) {
+        wishesSynced = true;
+        if (snap.empty && pendingWishes.length && canWrite) pendingWishes.forEach(({ id, ...w }) => wishCol.add(w).catch(() => {}));
+      }
       wishes = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
       renderWishlist(view());
-    }, () => {});
-  })();
+    }, storeError);
+  }
+
+  // GitHub Pages version: firebase-config.js sets window.PHANTOM_FIREBASE; without it the page stays on this device only
+  function startFirebase() {
+    const conf = window.PHANTOM_FIREBASE;
+    if (!conf || !window.firebase) return;
+    try { firebase.initializeApp(conf); } catch (_) { return; }
+    const auth = firebase.auth();
+    auth.getRedirectResult().catch(() => {});
+    auth.onAuthStateChanged((u) => {
+      fbUser = u;
+      $("syncBar").hidden = !!u;
+      if (u && !dbRef) connectStore(firebase.firestore());
+      if (page === "setup") { setupDirty = false; fillSetup(); }
+    });
+  }
+  $("signInBtn").addEventListener("click", async () => {
+    if (!window.firebase || !firebase.apps.length) return;
+    const p = new firebase.auth.GoogleAuthProvider();
+    try { await firebase.auth().signInWithPopup(p); }
+    catch (e) {
+      if (e && /popup|operation-not-supported/.test(e.code || "")) firebase.auth().signInWithRedirect(p);
+      else toast("Sign-in didn't finish. Try again.");
+    }
+  });
+  $("signOutBtn").addEventListener("click", () => { if (window.firebase && firebase.apps.length) firebase.auth().signOut().then(() => location.reload()); });
+  if (window.PHANTOM_FIREBASE && window.firebase) $("syncBar").hidden = false;
 })();
 </script>
 
